@@ -1,4 +1,6 @@
 begin;
+set local lock_timeout='5s';
+set local statement_timeout='60s';
 -- Production consent data is deliberately separate from all simulator evidence.
 create table private.consent_rate_limits(key text primary key,window_start timestamptz not null default now(),requests integer not null default 0);
 create table private.consent_invitations (
@@ -48,13 +50,13 @@ create index consent_outbound_phone on private.consent_outbound(phone);
 do $$declare t text;begin
  foreach t in array array['consent_rate_limits','consent_invitations','recipient_suppression','relationship_consent','consent_evidence','consent_inbound','consent_outbound'] loop
  execute format('alter table private.%I enable row level security',t);
- execute format('revoke all on private.%I from public,anon,authenticated',t);
+ execute format('revoke all on private.%I from public,anon,authenticated,service_role',t);
  execute format('grant select,insert on private.%I to service_role',t);
  if t<>'consent_evidence' then execute format('grant update on private.%I to service_role',t);end if;
  end loop;
 end $$;
 alter table public.recipient_replies enable row level security;
-revoke all on public.recipient_replies from public,anon,authenticated;
+revoke all on public.recipient_replies from public,anon,authenticated,service_role;
 grant select on public.recipient_replies to authenticated;
 grant select,insert on public.recipient_replies to service_role;
 create policy own_read on public.recipient_replies for select to authenticated using(sender_id=(select auth.uid()));

@@ -56,3 +56,7 @@ Before deployment: review/apply migration in a controlled environment; run hoste
 6. Register the campaign, associate the existing Messaging Service/number, resolve review feedback, and independently approve any eventual recurring-message launch. The tested local consent milestone does not itself authorize launch.
 
 References: [Twilio required business/campaign information](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/collect-business-info), [registration quickstart](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/quickstart), [required policy URLs](https://www.twilio.com/en-us/changelog/a2p-10dlc-campaign-registration-will-require-privacy-policy-and-), [Advanced Opt-Out](https://www.twilio.com/docs/messaging/tutorials/advanced-opt-out).
+
+## Subsequent submission preparation
+
+The latest exact scope is in `CONSENT_MIGRATION_REVIEW.md` and `RESTRICTED_DEPLOYMENT_REVIEW.md`. Read-only hosted comparison passed against five applied migrations; the earlier local Twilio migration is also still pending. Production disclosure is now `caretext-sms-consent-v2`, explicitly excluding future Autopilot. Netlify's restricted artifact contains no approved API endpoints. No migration or publication was performed. See `TWILIO_CAMPAIGN_REVIEW_PACKET.md` for synthetic opt-in evidence and `TWILIO_ADVANCED_OPTOUT_PLAN.md` for pending provider settings.

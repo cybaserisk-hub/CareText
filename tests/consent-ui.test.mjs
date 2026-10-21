@@ -6,7 +6,7 @@ test('existing invitation screen switches production copy, requires affirmative 
  const w=new Window({url:'http://localhost/invite#token='+ 'a'.repeat(64),settings:{disableCSSFileLoading:true,disableJavaScriptFileLoading:true}});
  try{
  w.document.write(await readFile('site/invite/index.html','utf8'));const calls=[];
- w.fetch=async(url,request)=>{const body=JSON.parse(request.body);calls.push(body);return {ok:true,json:async()=>body.action==='view'?{test_only:false,sender:'Subscriber',frequency:'Weekly',phone_hint:'ending in 0123',disclosure:'Disclosure',policy_version:'v1',status:'pending'}:{ok:true,status:'accepted'}};};
+ w.fetch=async(url,request)=>{const body=JSON.parse(request.body);calls.push(body);return {ok:true,headers:new Headers({'content-type':'application/json'}),json:async()=>body.action==='view'?{test_only:false,sender:'Subscriber',frequency:'Weekly',phone_hint:'ending in 0123',disclosure:'Disclosure',policy_version:'v1',status:'pending'}:{ok:true,status:'accepted'}};};
  w.eval(await readFile('site/invite/flow.js','utf8'));await new Promise(r=>setTimeout(r,10));
  const el=id=>w.document.getElementById(id);
  assert.equal(el('sms-consent').checked,false);assert.equal(el('request-code').textContent,'Request verification code');

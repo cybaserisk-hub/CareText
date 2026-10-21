@@ -1,5 +1,7 @@
 node_modules/
 dist/
+review-dist/
+.netlify/
 test-results/
 playwright-report/
 .env

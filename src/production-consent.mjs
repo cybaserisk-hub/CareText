@@ -1,7 +1,7 @@
 import {randomBytes,createHmac} from 'node:crypto';
 import {digest,DISCLOSURE} from './invitation-service.mjs';
 import {createTwilioWebhookHandler} from './twilio-webhooks.mjs';
-export const CONSENT_POLICY='caretext-sms-consent-v1';
+export const CONSENT_POLICY='caretext-sms-consent-v2';
 // Constructed only by a trusted server. No credentials, SDK or flags enter the bundle.
 export function productionConsentService({rpc,authenticate,verifyService,accountSid,serviceSid,verificationEnabled=false}){
  const call=async(action,data)=>{const r=await rpc(action,data);if(r.error)throw new Error(r.error);return r;};

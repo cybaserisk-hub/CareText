@@ -4,6 +4,7 @@ let policy, busy=false, testOnly=true;
 const status=text=>{el('invite-status').textContent=text;};
 async function api(action,extra={}){
  const response=await fetch('/api/invitations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,token,...extra})});
+ if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Invitation verification is not available. No consent was recorded. Contact support@caretext.app.');
  const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||'Invitation unavailable');return data;
 }
 async function run(task){if(busy)return;busy=true;for(const b of document.querySelectorAll('button'))b.disabled=true;try{await task();}catch(e){status(e.message);}finally{busy=false;for(const b of document.querySelectorAll('button'))b.disabled=false;}}

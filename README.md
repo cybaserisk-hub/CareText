@@ -33,3 +33,9 @@ Legal draft pages are available at `/privacy`, `/terms`, and `/invite`. CareText
 ## Production consent implementation
 
 Production invitation/Verify orchestration, immutable consent evidence, entitlement-checked activation, signed STOP/HELP persistence and safe reply routing are implemented and tested locally. The new migration and endpoints are not deployed; paid verification and delivery remain disabled. See [PRODUCTION_CONSENT_DEPLOYMENT.md](PRODUCTION_CONSENT_DEPLOYMENT.md) for the verification report, exact proposed public scope and remaining campaign/operational blockers. The controlled-test sending gate remains closed.
+
+## A2P submission preparation
+
+Read-only hosted catalog compatibility was checked against the five applied migrations; both Twilio local-workflow and production-consent migrations remain pending. See [CONSENT_MIGRATION_REVIEW.md](CONSENT_MIGRATION_REVIEW.md) for the exact migration scope, security finding, backup gates and emergency disable procedure.
+
+`node scripts/build-review.mjs` builds only the restricted local review artifact. Netlify publishing remains blocked. See [RESTRICTED_DEPLOYMENT_REVIEW.md](RESTRICTED_DEPLOYMENT_REVIEW.md), [TWILIO_CAMPAIGN_REVIEW_PACKET.md](TWILIO_CAMPAIGN_REVIEW_PACKET.md) and [TWILIO_ADVANCED_OPTOUT_PLAN.md](TWILIO_ADVANCED_OPTOUT_PLAN.md). No consent endpoints, paid sends or campaign submission are approved by this preparation.

@@ -1,0 +1,73 @@
+{
+  "source": "read-only hosted catalog compared with local PostgreSQL replay",
+  "hostedBaseline": [
+    "20261021010021_caretext_foundation.sql",
+    "20261021013948_onboarding_persistence.sql",
+    "20261021014517_private_signup_gate.sql",
+    "20261021021112_learnme_optout_deletion.sql",
+    "20261021031107_recipient_consent_test_workflow.sql"
+  ],
+  "comparisonDifferences": {
+    "tables": [],
+    "columns": [],
+    "constraints": [],
+    "policies": [],
+    "column_grants": [],
+    "triggers": [],
+    "plans": [],
+    "missing_table_grants": []
+  },
+  "extraTableGrants": [],
+  "functions": [
+    {
+      "name": "private.before_user_created",
+      "compatible": true
+    },
+    {
+      "name": "public.bump_learnme_revision",
+      "compatible": true
+    },
+    {
+      "name": "public.clear_learnme_history",
+      "compatible": true
+    },
+    {
+      "name": "public.create_relationship",
+      "compatible": true
+    },
+    {
+      "name": "public.guard_recipient_phone",
+      "compatible": true
+    },
+    {
+      "name": "public.guard_style_write",
+      "compatible": true
+    },
+    {
+      "name": "public.recipient_invitation_test",
+      "compatible": true
+    },
+    {
+      "name": "public.save_onboarding",
+      "compatible": true
+    }
+  ],
+  "activeRelationships": [
+    {
+      "active_relationships_must_be_zero": 0
+    }
+  ],
+  "pendingObjects": [
+    {
+      "must_also_be_null": null,
+      "must_be_null": null
+    }
+  ],
+  "database": [
+    {
+      "current_database": "postgres",
+      "version": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit"
+    }
+  ],
+  "limits": "Catalog comparison only; hosted migration, PostgREST behavior, backup restore and provider callbacks remain untested."
+}

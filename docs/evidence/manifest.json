@@ -1,0 +1,14 @@
+{
+  "kind": "local synthetic visual evidence; not hosted acceptance",
+  "disclosureVersion": "caretext-sms-consent-v2",
+  "files": [
+    {
+      "file": "docs/evidence/invitation-desktop.png",
+      "sha256": "cfa22e864a2dda16f85aad6152ae93482edb025bd5be2a15f51058bbfe9fbff3"
+    },
+    {
+      "file": "docs/evidence/invitation-mobile.png",
+      "sha256": "57599713b4b74319284cdc6b25c82561e7d062f11e04f5d03ebcf56dfa08059f"
+    }
+  ]
+}

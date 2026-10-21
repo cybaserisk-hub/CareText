@@ -38,13 +38,31 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Brand and campaign data | Twilio submission | Business identity/EIN/contact, registered brand match, campaign use case, message samples, number association and complete message-flow description not reviewed/submitted |
 | Safe public review scope | netlify.toml; deployment-disabled.mjs | Deployment block retained. Owner approval required for exact reviewed scope |
 
-## Required owner input and deployment approval
+## Current submission-readiness review (from 3badc71)
 
-1. Retention periods and privacy-request procedure have now been supplied. Validate each period against actual provider controls before promising it. Identify treatment of consent/suppression evidence, provider logs and backups.
-2. Inbound privacy and support delivery is verified. Finalize response coverage, request tracking, escalation and an approved reply identity; receipt testing alone does not validate these procedures.
-3. Approve final policy text and operational procedures after missing facts are resolved. No effective date has been invented.
-4. Production consent is implemented locally; hosted and separately approved real end-to-end acceptance remain pending. Operational deletion still requires implementation and validation.
-5. Proposed future deployment scope for approval: only `/privacy`, `/terms`, `/invite`, their necessary CSS/logo/preview assets, and reviewed legal footer links. No public account/onboarding routes, checkout, SMS endpoints or registration changes. Hosting must enforce that restricted scope; copying the entire current dist directory would exceed it. Domain routing/TLS and any replacement of existing hosted content must be reviewed explicitly before deployment.
+| Item | Evidence | Status / required decision |
+| --- | --- | --- |
+| Hosted schema compatibility | `docs/consent-compatibility.json`, `CONSENT_MIGRATION_REVIEW.md` | READ-ONLY PASS: expected first five migrations match catalog; zero active CareTouch; production objects absent. Two migrations pending, neither applied |
+| Migration hardening / disable plan | Pending production SQL; `deployment/consent-disable.sql` | LOCAL PASS: broad default grants removed before least-privilege grants; lock/statement timeout; disable preserves suppression/evidence. Owner must approve exact migration set and maintenance/backup plan |
+| RLS and Auth security | Local tests; hosted advisor | Local authorization tests pass. Hosted advisor WARN: leaked-password protection disabled; owner review needed. Repeat hosted RLS/advisors after separately approved migration |
+| Backup and retention | `CONSENT_MIGRATION_REVIEW.md`, provider review | BLOCKED: actual backup availability, restore drill, deletion/anonymization, consent-retention clock and restore-time suppression/deletion replay not verified |
+| Restricted static artifact | `deployment/review-scope.json`, `scripts/build-review.mjs`, `netlify.toml` | LOCAL PASS: only three pages plus exact assets; forced 404 otherwise; no APIs/functions. Build gate still fails. Owner approval required before publication |
+| Standard vs Autopilot | Privacy, Terms, disclosure v2 | Updated: subscriber approves standard CareTouch before scheduled delivery; future Autopilot explicitly disabled/outside invitation. Owner final text approval pending |
+| Campaign fields and samples | `TWILIO_CAMPAIGN_REVIEW_PACKET.md` | Three representative branded samples and message-flow draft prepared. Owner/Twilio classification, business match, link/phone content policy and final approval pending |
+| Opt-in visual evidence | `docs/evidence/invitation-desktop.png`, `invitation-mobile.png`, manifest | Local synthetic screenshots; no real consent and no hosted evidence URL. Reviewer-accessible proof still requires approved publication/evidence method |
+| Advanced Opt-Out | `TWILIO_ADVANCED_OPTOUT_PLAN.md` | Settings/STOP/HELP test procedure prepared only. Provider-generated replies need approval; START/provider unblock vs application suppression must be resolved |
+| Expired-link withdrawal UI | `SUBMISSION_PREPARATION_REPORT.md` | BLOCKED: API permits expired-token withdrawal, but the view rejects expiry before showing the control; fix and browser-test before hosted acceptance |
+| Real production acceptance | Production tests, previous Verify report | Mocked production tests pass; earlier OTP-only test stays closed. No new paid attempts; hosted consent, concurrency and signed callback acceptance pending separate scope/budget |
+| Campaign submission / launch | Owner approval | NOT AUTHORIZED. No campaign submitted; no payment, customer messaging, registration or Autopilot enabled |
+
+## Required owner input and approvals
+
+1. Approve final campaign description, representative samples, LOW_VOLUME classification if appropriate, brand/business match and allowed embedded link/phone behavior. Do not register the recurring campaign as OTP-only.
+2. Approve final legal text after retention/request operations review. Privacy/support inbound delivery is verified; staffing, response tracking, escalation and reply identity remain operational work.
+3. Decide the two pending migration files explicitly. Confirm backup/restore evidence and approve the controlled plan before hosted application; no blanket migration push is authorized.
+4. Approve only the precise public route list in `RESTRICTED_DEPLOYMENT_REVIEW.md` when ready. Currently approved consent endpoints: **none**. `/api/invitations` and `/api/twilio/inbound` each need separate approval and a reviewed host adapter; `/api/twilio/status` remains excluded.
+5. Approve Advanced Opt-Out wording/configuration and resolve re-enrollment behavior. Real callback/OTP tests require a new approved destination, budget and send count. Old controlled-test permission remains closed.
+6. Approve campaign submission and any fees separately, after remaining evidence blockers are resolved. Submission approval is not messaging-launch approval.
 
 ## Authoritative review references
 

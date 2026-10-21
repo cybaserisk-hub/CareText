@@ -1,0 +1,13 @@
+{
+  "publicDeploymentApproved": false,
+  "approvedConsentEndpoints": [],
+  "routes": {
+    "/privacy": "privacy/index.html",
+    "/terms": "terms/index.html",
+    "/invite": "invite/index.html",
+    "/style.css": "style.css",
+    "/legal.css": "legal.css",
+    "/assets/caretext-logo.svg": "assets/caretext-logo.svg",
+    "/invite/flow.js": "invite/flow.js"
+  }
+}
