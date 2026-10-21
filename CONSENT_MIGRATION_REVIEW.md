@@ -1,3 +1,5 @@
+> Latest preparation: `RECOVERY_AND_AUTOPILOT_REPORT.md`. Two canonical migrations are now pending (consent + readiness); neither applied. Recovery/semantic safety/hosting verification details supersede historical status below.
+
 # Controlled migration review
 
 Preparation from `3badc71`. **No hosted migration, backup restore, paid OTP, or deployment performed.** Read-only hosted verification succeeded using the existing CLI authentication with `NODE_USE_SYSTEM_CA=1`; the connector was unavailable. Evidence: [catalog comparison](docs/consent-compatibility.json).

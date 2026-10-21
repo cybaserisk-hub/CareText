@@ -1,3 +1,5 @@
+> Latest preparation: `RECOVERY_AND_AUTOPILOT_REPORT.md`. Two canonical migrations are now pending (consent + readiness); neither applied. Recovery/semantic safety/hosting verification details supersede historical status below.
+
 # Trusted Autopilot: first-release acceptance criteria
 
 Required for release one, **disabled now**. This document is an acceptance contract. Offline development controls are implemented in `src/autopilot-controls.mjs` with transactional PGlite tests; production integration is NOT complete. `architecture/src/eligibility.mjs` is a design starter, not trusted production authorization. The database still permits only manual/paused modes. No worker, activation endpoint or AI integration is enabled by this preparation.

@@ -1,3 +1,5 @@
+> Latest preparation: `RECOVERY_AND_AUTOPILOT_REPORT.md`. Two canonical migrations are now pending (consent + readiness); neither applied. Recovery/semantic safety/hosting verification details supersede historical status below.
+
 # CareText Twilio A2P 10DLC Compliance Checklist
 
 Assessment: October 20, 2026 (America/Chicago). **NOT READY FOR SUBMISSION.** Content is prepared locally; no deployment or campaign submission is authorized or performed. No public registration, payments, or live SMS is enabled.
@@ -115,3 +117,10 @@ Submission remains NOT READY: final text/use-case review, reviewer evidence publ
 | Backups/restoration | Dashboard: Free has no project backups; synthetic quarantine/deletion/suppression tests | Actual encrypted backup and isolated restore missing |
 | Seven-route review artifact | Exact legal URLs + four static assets; APIs denied; hard build blocker retained | Prepared locally; publication requires separate scope approval |
 | Campaign submission and launch | `AUTOPILOT_DEVELOPMENT_REPORT.md` lists all remaining gates | NOT READY; do not submit or activate |
+
+## Current submission blockers after recovery preparation
+
+- Legal URLs: existing Netlify site confirmed, but caretext.app is not attached, has no web DNS records and no provisioned custom TLS certificate; existing Netlify legal routes return 404. Seven-route artifact passes local tests but is not published.
+- Recovery: encrypted synthetic restore passes; real exports, key custody, local runtime installation, 24-hour operational validation and staging remain unapproved/unverified.
+- Autopilot: authoritative readiness/manual-pause RPC prepared, activation off; semantic adapter rejects absent provider but model/evals and sending integration remain incomplete.
+- Two pending migrations, retention implementation, leaked-password protection, Advanced Opt-Out/live callback testing and final campaign review remain blockers.

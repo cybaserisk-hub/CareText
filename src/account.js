@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import {mountAutopilotPanel} from './autopilot-panel.js';
 const $ = selector => document.querySelector(selector);
 const status = message => { $('#status').textContent = message; };
 // Keep passwords masked initially and after the form is cleared.
@@ -54,6 +55,8 @@ if (!config.url || !config.key) {
       p.textContent = `${row.recipients.display_name} · ${row.kind} · ${row.caretouch_active ? 'CareTouch consent active (delivery disabled)' : 'MyTouch (CareTouch inactive)'}`;
       const link=document.createElement('a');link.href=`app.html?relationship=${encodeURIComponent(row.id)}`;link.textContent=' Edit setup';p.append(link);
       $('#recipients').append(p);
+      // No public preparation endpoint is approved or mounted. Controls stay disabled.
+      mountAutopilotPanel($('#recipients'));
     }
   }
   async function run(action) {

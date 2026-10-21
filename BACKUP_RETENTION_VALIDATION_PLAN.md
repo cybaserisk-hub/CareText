@@ -1,3 +1,5 @@
+> Latest preparation: `RECOVERY_AND_AUTOPILOT_REPORT.md`. Two canonical migrations are now pending (consent + readiness); neither applied. Recovery/semantic safety/hosting verification details supersede historical status below.
+
 # Backup, retention, deletion and restoration validation plan
 
 **Plan complete; provider configuration and destructive acceptance not executed.** Targets are operational policies supplied by the owner, subject to law and provider capability; they are not Texas statutory periods. Do not publish unconditional guarantees. All backups/exports must be encrypted, access-controlled and outside GitHub, public artifacts and ordinary synced workspace folders.

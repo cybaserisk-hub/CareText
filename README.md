@@ -1,5 +1,7 @@
 # CareText V5.3 — Netlify / GitHub / Codex handoff
 
+Latest preparation: [Recovery and Autopilot report](RECOVERY_AND_AUTOPILOT_REPORT.md), [exact recovery proposal](DEVELOPMENT_RECOVERY_PROPOSAL.md), and [Netlify/domain verification](NETLIFY_REVIEW_VERIFICATION.md). All production services remain disabled.
+
 ## Development and deployment preparation
 - Run `npm ci`, `npm test`, and `npm run build` with Node 24. Serve **dist/** over HTTP for preview.
 - GitHub source: https://github.com/cybaserisk-hub/CareText. Supabase: project `ixpniaronwgjimqyeowq` (CareText).

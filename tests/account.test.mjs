@@ -2,13 +2,15 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Window} from 'happy-dom';
+import {mountAutopilotPanel} from '../src/autopilot-panel.js';
 const html = await readFile('site/account.html','utf8');
-const source = (await readFile('src/account.js','utf8')).replace("import { createClient } from '@supabase/supabase-js';",'const createClient = window.mockCreateClient;');
+const source = (await readFile('src/account.js','utf8')).replace("import { createClient } from '@supabase/supabase-js';",'const createClient = window.mockCreateClient;').replace("import {mountAutopilotPanel} from './autopilot-panel.js';",'const mountAutopilotPanel = window.mountAutopilotPanel;');
 const settle = () => new Promise(resolve=>setTimeout(resolve,30));
 function setup(config = {}) {
   const window = new Window({url:'https://caretext.example/account.html',settings:{disableCSSFileLoading:true,disableJavaScriptFileLoading:true}});
   window.document.write(html);
   window.CARETEXT_CONFIG = config;
+  window.mountAutopilotPanel = mountAutopilotPanel;
   return window;
 }
 test('unconfigured account fails closed', async()=>{
