@@ -4,7 +4,7 @@ Domain: `caretext.app`. Sender: `CareText <notifications@caretext.app>`.
 Provider: existing cybaserisk Resend account; separate CareText domain and credentials. CyFireAI configuration is not used or changed.
 
 Resend domain ID: `2fe82f93-f513-488a-8acc-ffdfae8d0c2c` (North Virginia).
-The domain is verified in Resend as of October 20, 2026, 8:53 PM America/Chicago. All four records below were added to the CareText Cloudflare zone. Both CNAMEs are DNS only. The owner-approved `CareText Supabase Auth` sending key is restricted to caretext.app and installed as Supabase's SMTP password. Its temporary local copy was removed. Actual inbox delivery and user completion of verification/recovery remain pending.
+The domain is verified in Resend as of October 20, 2026, 8:53 PM America/Chicago. All four records below were added to the CareText Cloudflare zone. Both CNAMEs are DNS only. The owner-approved `CareText Supabase Auth` sending key is restricted to caretext.app and installed as Supabase's SMTP password. Its temporary local copy was removed. The owner verified confirmation-link completion, password recovery, successful new-password login, and rejection of the old password.
 
 ## Exact DNS records supplied by Resend
 
@@ -33,10 +33,14 @@ Create a Resend key named `CareText Supabase Auth`, with Sending access limited 
 
 For later Netlify transactional notifications, create another CareText-only sending key named `CareText Netlify Notifications`. Store it as a secret named `CARETEXT_RESEND_API_KEY` in the CareText Netlify project, scoped to Functions, with `CARETEXT_EMAIL_FROM=CareText <notifications@caretext.app>`. Do not put it in Builds, browser configuration, Git, or CyFireAI's project. Email workers for approval reminders, recipient reply notifications, and subscription notifications are future server-only features and remain disabled until the relevant workflows exist. No public generic send-email endpoint should be added.
 
-SMTP is enabled for private authentication testing. The owner confirmed receipt of the signup confirmation email at the approved inbox on October 20, 2026. Completion of the emailed confirmation link and recovery delivery remain to be verified. No test mail goes to customers. The approved test inbox is managed outside this repository in a private signup allowlist. The separate Netlify notifications key and workers have not been created or enabled.
+SMTP is enabled for private authentication testing. The owner confirmed receipt of the signup confirmation email at the approved inbox on October 20, 2026. The owner subsequently confirmed completion of the confirmation and recovery links, successful new-password login, and old-password rejection. No test mail goes to customers. The approved test inbox is managed outside this repository in a private signup allowlist. The separate Netlify notifications key and workers have not been created or enabled.
 
 ## URLs and registration gate
 
 Supabase Site URL is `https://caretext.app`. Exact allowed redirects are `https://caretext.app/account.html` and `http://localhost:4173/account.html` for private local testing. No wildcard redirect is allowed. The before-user-created hook rejects addresses outside the private tester allowlist, even if someone bypasses the website and calls Supabase directly.
 
 At inspection, `caretext.app` had Cloudflare nameservers but no website A record. DNS/TLS and a private approved test deployment are still required before production-domain browser tests can pass. The repository's Netlify deployment block remains enabled. Do not route public traffic to new account screens or activate open registration as part of email-domain verification.
+
+## Verified incoming privacy and support mail
+
+Cloudflare Email Routing forwards privacy@caretext.app and support@caretext.app to the owner-designated monitored Gmail inbox. Both external Zoho delivery tests passed on October 20, 2026. Recipient-based Gmail filters apply CareText / Privacy and CareText / Support, including the existing test messages. See [inbound configuration and evidence](CARETEXT_INBOUND_EMAIL_PLAN.md). Resend remains outbound-only for notifications@caretext.app. CareText reply identities and operational response coverage remain follow-up work. Public deployment, payments and SMS remain disabled.
