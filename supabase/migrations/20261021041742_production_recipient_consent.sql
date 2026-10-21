@@ -140,13 +140,13 @@ begin
    update private.consent_outbound set status=data->>'status',updated_at=now() where message_sid=data->>'message_sid';end if;
   return jsonb_build_object('ok',true);
  elsif action='eligibility' then
-  select c.*,rec.phone as current_phone,rel.caretouch_active,os.state as setup,inv.setup_state into r from private.relationship_consent c
+  select c.*,rec.phone as current_phone,rel.caretouch_active,os.state as setup,inv.setup_state,inv.policy_version into r from private.relationship_consent c
    join public.relationships rel on rel.id=c.relationship_id join public.recipients rec on rec.id=c.recipient_id
    join private.consent_invitations inv on inv.id=c.invitation_id join public.onboarding_states os on os.relationship_id=c.relationship_id
    where c.relationship_id=(data->>'relationship_id')::uuid;
   if not found then return jsonb_build_object('consent_eligible',false,'delivery_allowed',false,'reason','No consent; delivery disabled');end if;
   select s.*,p.active_recipient_limit,p.daily_caretouch into sub from public.subscriptions s join public.plan_allowances p on p.plan=s.plan where sender_id=r.sender_id;
-  return jsonb_build_object('consent_eligible',coalesce(r.state='granted' and r.phone=r.current_phone and r.setup=r.setup_state and r.caretouch_active and sub.status='active' and sub.plan in ('Essential','Plus') and (select count(*) from public.relationships where sender_id=r.sender_id and caretouch_active)<=sub.active_recipient_limit and (r.setup->>'frequency'<>'Daily' or sub.daily_caretouch) and not exists(select 1 from private.recipient_suppression sp where sp.phone=r.phone and sp.blocked),false),'delivery_allowed',false,'reason','CareTouch delivery remains disabled');
+  return jsonb_build_object('consent_eligible',coalesce(r.state='granted' and r.phone=r.current_phone and r.setup=r.setup_state and r.caretouch_active and sub.status='active' and sub.plan in ('Essential','Plus') and (select count(*) from public.relationships where sender_id=r.sender_id and caretouch_active)<=sub.active_recipient_limit and (r.setup->>'frequency'<>'Daily' or sub.daily_caretouch) and not exists(select 1 from private.recipient_suppression sp where sp.phone=r.phone and sp.blocked),false),'delivery_allowed',false,'policy_version',r.policy_version,'reason','CareTouch delivery remains disabled');
  end if;
  select * into i from private.consent_invitations where token_hash=data->>'token_hash';
  if not found then return jsonb_build_object('error','Invitation unavailable');end if;
@@ -162,6 +162,14 @@ begin
   update public.relationships set caretouch_active=false where id=i.relationship_id and exists(select 1 from private.relationship_consent where invitation_id=i.id and relationship_id=i.relationship_id);
   update private.consent_outbound set status='canceled' where relationship_id=i.relationship_id and status in ('queued','accepted','scheduled') and exists(select 1 from private.relationship_consent where relationship_id=i.relationship_id and invitation_id=i.id);
   update private.consent_invitations set status='revoked' where id=i.id;
+ elsif action='view' and (i.expires_at<=now() or i.status<>'pending') then
+  -- Expiry forbids new acceptance, not withdrawal of an existing grant. Only the
+  -- current invitation may expose withdrawal; an older link cannot revoke re-consent.
+  select * into prior from private.relationship_consent where relationship_id=i.relationship_id and invitation_id=i.id;
+  return jsonb_build_object('sender',i.sender_name,'frequency',i.frequency,'phone_hint','ending in '||right(i.phone,4),
+   'policy_version',i.policy_version,'disclosure',i.disclosure,'test_only',false,'withdrawal_only',true,
+   'can_withdraw',coalesce(i.status='accepted' and prior.state='granted',false),
+   'status',case when i.status='accepted' then coalesce(case prior.state when 'granted' then 'accepted' else prior.state end,'superseded') when i.status='pending' then 'expired' else i.status end);
  elsif i.expires_at<=now() then return jsonb_build_object('error','Invitation expired');
  elsif not exists(select 1 from public.recipients rec join public.onboarding_states os on os.relationship_id=i.relationship_id where rec.id=i.recipient_id and rec.phone=i.phone and os.state=i.setup_state) then return jsonb_build_object('error','Setup changed; request a new invitation');
  elsif action='view' then return jsonb_build_object('sender',i.sender_name,'frequency',i.frequency,'phone_hint','ending in '||right(i.phone,4),'policy_version',i.policy_version,'disclosure',i.disclosure,'status',i.status,'test_only',false);

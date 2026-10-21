@@ -41,3 +41,5 @@ No consent endpoint is implied by approval to publish static legal pages. A late
 5. If functional opt-in is required for review, obtain additional endpoint/migration/send approvals, mount a reviewed adapter, and test isolated real end-to-end consent. Do not enable delivery merely to make the review page functional.
 
 References: [Netlify redirect processing](https://docs.netlify.com/manage/routing/redirects/overview/), [custom headers](https://docs.netlify.com/manage/routing/headers/).
+
+First-release follow-up: use `FIRST_RELEASE_DEPLOYMENT_CHECKLIST.md` for the current static/API/Autopilot phase approvals and rollback constraints. The static route manifest and unconditional build block remain unchanged.

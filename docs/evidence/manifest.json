@@ -1,14 +1,22 @@
 {
   "kind": "local synthetic visual evidence; not hosted acceptance",
-  "disclosureVersion": "caretext-sms-consent-v2",
+  "disclosureVersion": "caretext-sms-consent-v3",
   "files": [
     {
       "file": "docs/evidence/invitation-desktop.png",
-      "sha256": "cfa22e864a2dda16f85aad6152ae93482edb025bd5be2a15f51058bbfe9fbff3"
+      "sha256": "daef154933493d42c36b5bac8ff63f0ebca8cb9c9f68171b9cccbbcabb6bd632"
+    },
+    {
+      "file": "docs/evidence/expired-withdrawal-desktop.png",
+      "sha256": "bd0ef60c59163e3dae39aa252c025fde41ffe5ecf044d9cc28a2036522fdab7b"
     },
     {
       "file": "docs/evidence/invitation-mobile.png",
-      "sha256": "57599713b4b74319284cdc6b25c82561e7d062f11e04f5d03ebcf56dfa08059f"
+      "sha256": "dcc9bd1806bb7820db949091ddd9df22690e88a949f7ed37b1dcb93441fa7a88"
+    },
+    {
+      "file": "docs/evidence/expired-withdrawal-mobile.png",
+      "sha256": "61d1c3ceb4b1e8f267319f304c86c025bcf485ecddf85e2ed00a220268398763"
     }
   ]
 }

@@ -24,7 +24,7 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Recurring billing / cancellation | Terms: Renewals, cancellation and refunds | Described conditionally; portal and webhook behavior unimplemented |
 | Refund windows | Terms: 7 days initial monthly / 14 days initial annual purchase | Content ready; applicable law and service exceptions retained; processing workflow pending |
 | Recipient replacements | Terms; production consent migration | Rolling 30-day voluntary limit and recorded opt-out exception tested locally for paid plans; other documented exceptions require support handling; hosted enforcement pending |
-| SMS program / AI transparency | Terms and invitation | Content ready; human approval and future Autopilot distinguished; Autopilot disabled |
+| SMS program / AI transparency | Terms and invitation | v3, Privacy and Terms now include first-release Autopilot and standard CareTouch; both conditional on safeguards; activation remains disabled |
 | Frequency / rates / STOP / HELP | Terms and invitation | General disclosures present; actual per-invitation schedule and configured keyword behavior pending |
 | Carrier liability disclaimer | Terms: Delivery and privacy | Content ready |
 | Subscriber identity | Invitation: From | Production server snapshots saved subscriber display name; local UI and ownership checks implemented; hosted acceptance pending |
@@ -47,11 +47,11 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | RLS and Auth security | Local tests; hosted advisor | Local authorization tests pass. Hosted advisor WARN: leaked-password protection disabled; owner review needed. Repeat hosted RLS/advisors after separately approved migration |
 | Backup and retention | `CONSENT_MIGRATION_REVIEW.md`, provider review | BLOCKED: actual backup availability, restore drill, deletion/anonymization, consent-retention clock and restore-time suppression/deletion replay not verified |
 | Restricted static artifact | `deployment/review-scope.json`, `scripts/build-review.mjs`, `netlify.toml` | LOCAL PASS: only three pages plus exact assets; forced 404 otherwise; no APIs/functions. Build gate still fails. Owner approval required before publication |
-| Standard vs Autopilot | Privacy, Terms, disclosure v2 | Updated: subscriber approves standard CareTouch before scheduled delivery; future Autopilot explicitly disabled/outside invitation. Owner final text approval pending |
+| Standard vs Autopilot | Privacy, Terms, disclosure v3 | v3 two-model disclosure and screenshots prepared. Old grants unchanged; re-consent required for Autopilot. Full acceptance matrix prepared; Autopilot implementation and hosted acceptance still blocked |
 | Campaign fields and samples | `TWILIO_CAMPAIGN_REVIEW_PACKET.md` | Three representative branded samples and message-flow draft prepared. Owner/Twilio classification, business match, link/phone content policy and final approval pending |
 | Opt-in visual evidence | `docs/evidence/invitation-desktop.png`, `invitation-mobile.png`, manifest | Local synthetic screenshots; no real consent and no hosted evidence URL. Reviewer-accessible proof still requires approved publication/evidence method |
 | Advanced Opt-Out | `TWILIO_ADVANCED_OPTOUT_PLAN.md` | Settings/STOP/HELP test procedure prepared only. Provider-generated replies need approval; START/provider unblock vs application suppression must be resolved |
-| Expired-link withdrawal UI | `SUBMISSION_PREPARATION_REPORT.md` | BLOCKED: API permits expired-token withdrawal, but the view rejects expiry before showing the control; fix and browser-test before hosted acceptance |
+| Expired-link withdrawal UI | `FIRST_RELEASE_PREPARATION_REPORT.md` | LOCAL PASS: expired accepted links show withdrawal only; expired acceptance blocked; duplicate withdrawal idempotent; old token cannot revoke new grant; desktop/mobile fixture tested |
 | Real production acceptance | Production tests, previous Verify report | Mocked production tests pass; earlier OTP-only test stays closed. No new paid attempts; hosted consent, concurrency and signed callback acceptance pending separate scope/budget |
 | Campaign submission / launch | Owner approval | NOT AUTHORIZED. No campaign submitted; no payment, customer messaging, registration or Autopilot enabled |
 
@@ -91,3 +91,14 @@ A dedicated CareText Verify service now exists. The approved local-only test pas
 ## Production consent implementation
 
 Production invitation/Verify orchestration, immutable consent evidence, entitlement-checked activation, signed STOP/HELP persistence and safe reply routing are implemented and tested locally. The new migration and endpoints are not deployed; paid verification and delivery remain disabled. See [PRODUCTION_CONSENT_DEPLOYMENT.md](PRODUCTION_CONSENT_DEPLOYMENT.md) for the verification report, exact proposed public scope and remaining campaign/operational blockers. The controlled-test sending gate remains closed.
+
+## First-release preparation status
+
+- `TRUSTED_AUTOPILOT_ACCEPTANCE.md`: complete acceptance criteria, implementation still pending. Ninety-day account age and two human approval cycles come from the design starter and must be server-enforced; the starter is not production authorization.
+- `BACKUP_RETENTION_VALIDATION_PLAN.md`: complete validation/restore procedure; actual provider settings, backups and erasure/restore drill remain unverified.
+- `FIRST_RELEASE_DEPLOYMENT_CHECKLIST.md`: separate static/API/launch approvals with security and phase-appropriate rollback. No public endpoints approved.
+- `SUPABASE_PASSWORD_PROTECTION_REVIEW.md`: documented `password_hibp_enabled` setting, Pro+ availability and conditional pricing; actual billing entitlement/cost still requires confirmation. Nothing enabled.
+- Recommend excluding the private Twilio test migration via audited repository relocation, not fake migration-history repair. Production-only local test passes. Both files remain pending until owner approves the strategy and later application.
+- v3 disclosures and screenshots include BOTH models at original opt-in; old v1/v2 evidence is never relabeled. New consent is required before those recipients can receive Autopilot messages.
+
+Submission remains NOT READY: final text/use-case review, reviewer evidence publication, hosted migration/acceptance, provider keyword/re-enrollment behavior, Autopilot/dispatch safeguards, and retention operations are unresolved. Campaign submission and all external activation require separate approval.

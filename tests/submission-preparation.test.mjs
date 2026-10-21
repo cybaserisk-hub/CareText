@@ -39,6 +39,6 @@ test('restricted review artifact excludes account code, endpoints and credential
  for(const path of Object.keys(scope.routes))assert.ok(route(path).endsWith('200!'));
  const config=await readFile('netlify.toml','utf8');assert.match(config,/publish = "review-dist"/);assert.match(config,/command = "node scripts\/deployment-disabled.mjs"/);assert.match(config,/directory = "deployment\/no-functions"/);
  assert.match(await readFile('review-dist/_headers','utf8'),/Referrer-Policy: no-referrer/);
- assert.match(DISCLOSURE,/subscriber reviews and approves/);assert.match(DISCLOSURE,/not part of this invitation/);assert.equal(CONSENT_POLICY,'caretext-sms-consent-v2');
- const terms=await readFile('review-dist/terms/index.html','utf8');assert.match(terms,/outside the current SMS program/);
+ assert.match(DISCLOSURE,/subscriber reviews and approves/);assert.match(DISCLOSURE,/under both delivery models/);assert.equal(CONSENT_POLICY,'caretext-sms-consent-v3');
+ const terms=await readFile('review-dist/terms/index.html','utf8');assert.match(terms,/first CareText release/);
 });

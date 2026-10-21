@@ -1,7 +1,12 @@
 import {randomBytes,createHmac} from 'node:crypto';
 import {digest,DISCLOSURE} from './invitation-service.mjs';
 import {createTwilioWebhookHandler} from './twilio-webhooks.mjs';
-export const CONSENT_POLICY='caretext-sms-consent-v2';
+export const CONSENT_POLICY='caretext-sms-consent-v3';
+export function consentCoversModel(policy,model){
+ if(model==='trusted_autopilot')return policy===CONSENT_POLICY;
+ if(model==='human_approved')return ['caretext-sms-consent-v2',CONSENT_POLICY].includes(policy);
+ return false;
+}
 // Constructed only by a trusted server. No credentials, SDK or flags enter the bundle.
 export function productionConsentService({rpc,authenticate,verifyService,accountSid,serviceSid,verificationEnabled=false}){
  const call=async(action,data)=>{const r=await rpc(action,data);if(r.error)throw new Error(r.error);return r;};
@@ -58,9 +63,9 @@ export function createProductionConsentEndpoints({admin,verifyService,config={},
  };
 }
 // Future dispatchers must use this gate immediately before dispatch. There is no sender.
-export async function requireDeliveryEligibility(rpc,relationshipId){
+export async function requireDeliveryEligibility(rpc,relationshipId,model='human_approved'){
  const r=await rpc('eligibility',{relationship_id:relationshipId});
- if(r.error||!r.consent_eligible||r.delivery_allowed!==true)throw new Error('CareTouch delivery disabled or consent ineligible');
+ if(r.error||!r.consent_eligible||!consentCoversModel(r.policy_version,model)||r.delivery_allowed!==true)throw new Error('CareTouch delivery disabled or consent ineligible');
  return r;
 }
 

@@ -19,12 +19,13 @@ const origin='http://127.0.0.1:'+server.address().port;let browser;
 try{
  browser=await chromium.launch();await mkdir('docs/evidence',{recursive:true});const hashes=[];
  for(const [name,options] of [['desktop',{viewport:{width:1280,height:1000}}],['mobile',devices['Pixel 7']]]){
-  const context=await browser.newContext(options);const page=await context.newPage();
+  const context=await browser.newContext(options);const page=await context.newPage();let expired=false;const actions=[];
   await page.route('**/*',async route=>{
    const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();
    if(url.pathname==='/api/invitations'){
-    const body=route.request().postDataJSON();assert.equal(body.action,'view');
-    return route.fulfill({json:{test_only:false,status:'pending',sender:'Alex (synthetic review example)',frequency:'Weekly',phone_hint:'Synthetic recipient; no real phone number',policy_version:CONSENT_POLICY,disclosure:DISCLOSURE}});
+    const body=route.request().postDataJSON();actions.push(body.action);assert.ok(['view','withdraw'].includes(body.action));
+    if(body.action==='withdraw')return route.fulfill({json:{ok:true,status:'withdrawn'}});
+    return route.fulfill({json:{test_only:false,status:expired?'accepted':'pending',withdrawal_only:expired,can_withdraw:expired,sender:'Alex (synthetic review example)',frequency:'Weekly',phone_hint:'Synthetic recipient; no real phone number',policy_version:CONSENT_POLICY,disclosure:DISCLOSURE}});
    }
    return route.continue();
   });
@@ -33,7 +34,15 @@ try{
   assert.equal(await page.locator('#withdraw-consent').isVisible(),false);
   await page.locator('#invite-notice').evaluate(el=>{el.textContent='LOCAL REVIEW FIXTURE — synthetic subscriber and schedule. No OTP sent and no consent recorded. This is not a live opt-in proof URL.';});
   const file=`docs/evidence/invitation-${name}.png`;await page.screenshot({path:file,fullPage:true});
-  hashes.push({file,sha256:createHash('sha256').update(await readFile(file)).digest('hex')});await context.close();
+  hashes.push({file,sha256:createHash('sha256').update(await readFile(file)).digest('hex')});
+  expired=true;await page.reload();await page.locator('#withdraw-consent').waitFor({state:'visible'});
+  assert.equal(await page.locator('#consent-form').isVisible(),false);
+  await page.locator('#invite-notice').evaluate(el=>{el.textContent='LOCAL REVIEW FIXTURE — expired invitation with a previously granted synthetic consent. Withdrawal remains available. No real consent or sending.';});
+  const withdrawal=`docs/evidence/expired-withdrawal-${name}.png`;await page.screenshot({path:withdrawal,fullPage:true});
+  hashes.push({file:withdrawal,sha256:createHash('sha256').update(await readFile(withdrawal)).digest('hex')});
+  await page.locator('#withdraw-consent').click();await page.locator('#invite-status').filter({hasText:'SMS consent withdrawn'}).waitFor();
+  assert.equal(await page.locator('#withdraw-consent').isVisible(),false);assert.deepEqual(actions,['view','view','withdraw']);
+  await context.close();
  }
  await writeFile('docs/evidence/manifest.json',JSON.stringify({kind:'local synthetic visual evidence; not hosted acceptance',disclosureVersion:CONSENT_POLICY,files:hashes},null,2)+'\n');
  console.log('Desktop and mobile invitation evidence captured; no external network or sends.');

@@ -1,5 +1,7 @@
 # A2P submission preparation verification
 
+Historical report for the preceding preparation commit. See `FIRST_RELEASE_PREPARATION_REPORT.md` for current v3 scope, fixed expired-link withdrawal and verification results.
+
 Based on commit `3badc71`. **Prepared, not deployed or submitted.**
 
 ## Results
@@ -29,3 +31,7 @@ Actual backup/restore/deletion controls; hosted migration and post-migration RLS
 The accepted invitation's API supports withdrawal after expiry, but the current view branch rejects expired links before rendering the withdrawal UI. Before hosted acceptance, resolve and browser-test that recipient experience; STOP and monitored support remain the documented alternate withdrawal paths when the SMS program is available. No claim is made that every production recipient workflow is launch-ready.
 
 All external changes require their own approval. This report is implementation evidence, not carrier acceptance or legal certification.
+
+## Subsequent owner clarification
+
+Trusted Autopilot is required in release one. Earlier wording excluding it is superseded as a release plan; the feature remains disabled in the current implementation. Current v2 disclosures and screenshots are standard-only preparation evidence and need revision before submission. See the updated campaign packet and checklist. No gates were enabled.
