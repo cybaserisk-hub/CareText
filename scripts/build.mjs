@@ -11,3 +11,5 @@ await cp('site', 'dist', { recursive: true });
 await writeFile('dist/config.js', `window.CARETEXT_CONFIG=${JSON.stringify({url,key})};\n`);
 await build({entryPoints:['src/account.js'],bundle:true,format:'esm',outfile:'dist/account.js',minify:true});
 await build({entryPoints:['site/workspace.js'],bundle:true,format:'esm',outfile:'dist/workspace.js',minify:true});
+
+await build({entryPoints:['site/invitation-tools.js'],bundle:true,format:'esm',outfile:'dist/invitation-tools.js',minify:true});

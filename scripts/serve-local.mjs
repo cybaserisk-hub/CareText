@@ -1,3 +1,5 @@
+import {createInvitationHandler} from '../src/invitation-http.mjs';
+const invitationHandler=createInvitationHandler();
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
@@ -6,6 +8,8 @@ const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=
 createServer(async(req,res)=>{
   try {
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+    if(pathname.startsWith('/api/twilio/')){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:'Twilio live endpoints are disabled; run the local contract tests'}));return;}
+    if(pathname==='/api/invitations'){if(invitationHandler)return await invitationHandler(req,res);res.writeHead(503,{'Content-Type':'application/json'}).end(JSON.stringify({error:'Private invitation testing is disabled'}));return;}
     if(pathname==='/__test/link' && process.env.CARETEXT_BROWSER_FIXTURE==='1'){
       const fixture=JSON.parse(await readFile('test-results/browser-fixture.json','utf8'));
       const destination=new URL(fixture.link);

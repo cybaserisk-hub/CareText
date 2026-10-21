@@ -6,10 +6,12 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 
 | Requirement | Location / evidence | Submission status |
 | --- | --- | --- |
+| Twilio sender association | Console sender pool; TWILIO_SETUP.md | VERIFIED: +14246672273 belongs to MG444fa12ec1f01b8d68a82f0432dcf62e; number messaging disabled pending A2P registration |
+| Verify service / webhooks | TWILIO_SETUP.md | BLOCKED: no Verify service exists; number webhooks and service status callback blank; Advanced Opt-Out not enabled. Configuration prepared, not installed |
 | Consistent brand and operator | All three pages, site footers | Content ready |
 | Privacy URL | `/privacy`, `site/privacy/index.html` | Local route verified; public HTTPS pending approval |
 | Terms URL | `/terms`, `site/terms/index.html` | Local route verified; public HTTPS pending approval |
-| Invitation URL | `/invite`, `site/invite/index.html` | Local route only; working consent flow incomplete |
+| Invitation URL | `/invite`, `site/invite/index.html` | Private test flow implemented; real phone verification and public route pending |
 | Collection, use, storage and deletion | Privacy: information, storage, LearnMe sections | Current behavior described; final retention policy unresolved |
 | No mobile/SMS consent marketing sharing | Privacy: Mobile information and service providers | Explicit no sale, rental, or sharing with third parties/affiliates for marketing/promotions |
 | Necessary provider processing | Privacy: providers and current/planned services | Disclosed; final provider contracts/settings need validation |
@@ -25,13 +27,13 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | SMS program / AI transparency | Terms and invitation | Content ready; human approval and future Autopilot distinguished; Autopilot disabled |
 | Frequency / rates / STOP / HELP | Terms and invitation | General disclosures present; actual per-invitation schedule and configured keyword behavior pending |
 | Carrier liability disclaimer | Terms: Delivery and privacy | Content ready |
-| Subscriber identity | Invitation: From | BLOCKED: no verified server-resolved invitation; never use browser-supplied subscriber identity as proof |
-| Expected message frequency | Invitation: Frequency | BLOCKED: must resolve actual schedule and cap from verified invitation before consent |
-| Separate unchecked SMS checkbox | Invitation | Present, unchecked and disabled; not bundled with general terms acceptance |
-| Accept / Decline | Invitation and preview.js | Accept disabled; Decline explicitly grants no consent and changes no records without a verified invitation |
-| Affirmative action + verification before recording consent | Invitation disabled; existing schema restrictions | Fail-closed preview only. Signed expiring invitation, phone-control verification, replay protection, rate limits and server-side evidence recording NOT implemented |
-| Consent evidence | Supabase foundation | Schema exists; capture disclosure version, subscriber/relationship/number, timestamp, affirmative action, verification evidence and revocation state in a tested server workflow before claiming readiness |
-| STOP / HELP / reply handling | Planned SMS disclosures | BLOCKED: provider keywords, webhook signatures, immediate suppression, help response, and reply routing not implemented/tested |
+| Subscriber identity | Invitation: From | Private test: server identifies verified subscriber account email; production identity presentation still needs review |
+| Expected message frequency | Invitation: Frequency | Private test: saved server schedule snapshot displayed; changed setup invalidates invitation; production schedule/entitlement enforcement pending |
+| Separate unchecked SMS checkbox | Invitation | Present, unchecked and separate; required for test acceptance; no live consent |
+| Accept / Decline | Invitation and flow.js | Test Accept requires challenge and affirmative action; Decline records decline without granting consent; no-token page fails closed |
+| Affirmative action + verification before recording consent | Private local API and service-role-only RPC | Expiring opaque tokens, bounded simulated challenges, replay protection and atomic TEST evidence implemented/tested. Offline Twilio SDK verification adapter also tested with persisted SID/reservation, attempt limits and provider context checks. Real provider phone-control verification remains BLOCKED |
+| Consent evidence | Supabase foundation | Private test evidence captures disclosure/version, subscriber/relationship/number, frequency, server timestamp and simulated method; live_consent=false enforced. Production provider-attested evidence still pending |
+| STOP / HELP / reply handling | Planned SMS disclosures | LOCAL TESTS PASS: SDK signatures, STOP suppression/queue cancellation, HELP preview, START non-reactivation and reply recording. BLOCKED: hosted integration, production suppression/dispatch, provider keywords, actual responses and subscriber reply routing |
 | Reviewer-accessible proof | These pages / future evidence | BLOCKED: no public approved deployment or approved evidence URL; static preview must not be presented as functional consent |
 | Brand and campaign data | Twilio submission | Business identity/EIN/contact, registered brand match, campaign use case, message samples, number association and complete message-flow description not reviewed/submitted |
 | Safe public review scope | netlify.toml; deployment-disabled.mjs | Deployment block retained. Owner approval required for exact reviewed scope |
@@ -61,3 +63,5 @@ See [PROVIDER_RETENTION_REVIEW.md](PROVIDER_RETENTION_REVIEW.md) and [CARETEXT_I
 
 
 Gmail filters: `to:(privacy@caretext.app)` applies `CareText / Privacy`; `to:(support@caretext.app)` applies `CareText / Support`. Both also applied to the existing matching test conversation. No archive, delete, mark-read, forwarding or spam-bypass actions were selected.
+
+See [RECIPIENT_INVITATION_TESTING.md](RECIPIENT_INVITATION_TESTING.md) for implementation, test evidence, safe local operation and remaining approvals. No live phone ownership or production SMS consent has been verified.

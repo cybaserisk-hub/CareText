@@ -1,0 +1,13 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {createClient} from '@supabase/supabase-js';
+import {randomUUID} from 'node:crypto';
+const fixture=JSON.parse(await readFile('test-results/browser-fixture.json','utf8'));
+if(!/^caretext-browser-[0-9a-f-]+@example.invalid$/.test(fixture.email))throw new Error('Disposable fixture required');
+const client=createClient(process.env.SUPABASE_URL,process.env.CARETEXT_TEST_ADMIN_KEY,{auth:{persistSession:false}});
+const ok=r=>{if(r.error)throw r.error;return r.data;};
+ok(await client.from('profiles').upsert({id:fixture.id,display_name:'CareText test subscriber'}));
+const recipient=ok(await client.from('recipients').insert({sender_id:fixture.id,display_name:'Test recipient',phone:'+12025550123'}).select().single());
+const rel=ok(await client.from('relationships').insert({sender_id:fixture.id,recipient_id:recipient.id,kind:'Friend'}).select().single());
+fixture.setup=randomUUID();
+ok(await client.from('onboarding_states').insert({id:fixture.setup,sender_id:fixture.id,relationship_id:rel.id,state:{plan:'Essential',mode:'care',name:'Test recipient',relationship:'Friend',phone:'+12025550123',frequency:'Weekly',days:['Mon'],step:5}}));
+await writeFile('test-results/browser-fixture.json',JSON.stringify(fixture));console.log('Disposable CareTouch setup ready.');
