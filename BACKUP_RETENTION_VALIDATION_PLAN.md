@@ -46,3 +46,11 @@ Owner assigns primary/deputy monitoring, request tracking, verified identity met
 ## Sources and current limits
 
 [Supabase backups](https://supabase.com/docs/guides/platform/backups) and [restore guide](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore); [Resend security/retention](https://resend.com/security); [Twilio redaction](https://www.twilio.com/docs/messaging/guides/privacy-message-redaction); [Polar privacy](https://polar.sh/legal/privacy-policy); `PROVIDER_RETENTION_REVIEW.md` contains prior provider research. Documentation review is not verification of account settings. No real account was deleted, backup restored, paid add-on purchased or retention setting changed during this preparation.
+
+## Latest read-only evidence and local rehearsal
+
+CareText App organization is **Free**, confirmed in billing. CareText database backups page explicitly states Free does not include project backups; Pro provides up to seven days. There is no verified project backup timestamp or successful restore. Do not apply the consent migration based on assumed daily backups.
+
+`tests/autopilot.test.mjs` now rehearses restoration of synthetic state with independently supplied deletion and suppression records. It rejects missing evidence, removes deleted synthetic identities, reapplies suppression and forces quarantine; it never releases or reactivates the result. This is not a provider backup restore, production tombstone store, or erasure guarantee. Existing LearnMe deletion regression tests still pass. Actual encrypted export, isolated restore destination, RPO/RTO, external record retention and provider deletion remain unverified.
+
+Required decision: approve either a CareText Pro upgrade (current minimum $25/month, usage/compute extra) or a separately scoped encrypted export/restore procedure with storage location and custodian. Approve the isolated restore destination and any cost before creating it. Preserve evidence/suppression after backup age; never restore directly over production.

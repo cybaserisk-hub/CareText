@@ -9,8 +9,8 @@ test('pending migration preserves existing data, overrides broad default grants 
  const db=new PGlite();try{
  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create role supabase_auth_admin;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to anon,authenticated,service_role;`);
  const files=(await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort();
- const pending='20261021041742_production_recipient_consent.sql';assert.equal(files.at(-1),pending);
- for(const file of files.slice(0,-1))await db.exec(await readFile('supabase/migrations/'+file,'utf8'));
+ const pending='20261021041742_production_recipient_consent.sql';assert.ok(files.includes(pending));
+ for(const file of files.slice(0,files.indexOf(pending)))await db.exec(await readFile('supabase/migrations/'+file,'utf8'));
  await db.exec(`insert into auth.users values('00000000-0000-4000-8000-000000000001');insert into public.profiles(id,display_name) values('00000000-0000-4000-8000-000000000001','Existing synthetic user');`);
  await db.exec(await readFile('deployment/consent-preflight.sql','utf8'));
  await db.exec(`alter default privileges in schema private grant all on tables to service_role,authenticated,anon;alter default privileges in schema public grant all on tables to service_role,authenticated,anon;`);

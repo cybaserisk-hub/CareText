@@ -14,7 +14,7 @@ This is a **design and database/policy starter**, not a live SMS sending system.
 ## Implementation order
 1. Integrate with authenticated users, sender/recipient relationship IDs and verified consent records.
 2. Set up server-only activation endpoint with 90-day eligibility and explicit checkbox + policy version.
-3. Send recipient mode-change disclosure and record successful disclosure before activation.
+3. Record explicit subscriber opt-in and queue subscriber in-app/email mode-change confirmations. Existing recipient v3 consent covers both models; require additional recipient notice only if final compliance review requires it. Narrower prior consent requires re-consent.
 4. Generate drafts from sender profile and Learn Me settings, enforce off-limits and repetition filters.
 5. Run queue worker with DB transaction, locking, idempotency, plan quota and opt-out recheck just before SMS submission.
 6. Add pause, manual-mode fallback, report-a-problem, activity history, and notification workflows.

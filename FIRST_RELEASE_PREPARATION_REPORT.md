@@ -1,3 +1,5 @@
+> Historical report. Latest approved decisions, work and blockers: `AUTOPILOT_DEVELOPMENT_REPORT.md`.
+
 # First-release preparation report
 
 Baseline: `adfa217`, including the owner's subsequent first-release scope correction. **No hosted migration, public deployment, OTP/SMS send, payment, Autopilot activation or campaign submission performed.**
@@ -36,6 +38,6 @@ Baseline: `adfa217`, including the owner's subsequent first-release scope correc
 
 ## Remaining blockers
 
-Autopilot runtime and AI safety/provider integration, active subscription source, approved-batch/segment/quota/queue/idempotency/suspension controls, recipient mode-change notice and re-enrollment; hosted migration and acceptance; actual backup/retention/deletion/restore implementation; leaked-password protection; approved public evidence and API adapter; real signed provider callback tests; final campaign/business/use-case review and carrier approval. The expired-invitation withdrawal defect is fixed locally and is no longer an implementation blocker, but must pass hosted acceptance.
+Autopilot runtime and AI safety/provider integration, active subscription source, approved-batch/segment/quota/queue/idempotency/suspension controls, subscriber in-app/email mode-change confirmations and required re-consent; hosted migration and acceptance; actual backup/retention/deletion/restore implementation; leaked-password protection; approved public evidence and API adapter; real signed provider callback tests; final campaign/business/use-case review and carrier approval. The expired-invitation withdrawal defect is fixed locally and is no longer an implementation blocker, but must pass hosted acceptance.
 
 The existing emergency SQL revokes the shared RPC and therefore also blocks STOP persistence. It is explicitly limited to the pre-messaging phase. Before customer traffic, implement a rollback path that stops generation/dispatch while keeping signed STOP intake and durable suppression available. Never restore stale consent or resume automatically.

@@ -102,3 +102,16 @@ Production invitation/Verify orchestration, immutable consent evidence, entitlem
 - v3 disclosures and screenshots include BOTH models at original opt-in; old v1/v2 evidence is never relabeled. New consent is required before those recipients can receive Autopilot messages.
 
 Submission remains NOT READY: final text/use-case review, reviewer evidence publication, hosted migration/acceptance, provider keyword/re-enrollment behavior, Autopilot/dispatch safeguards, and retention operations are unresolved. Campaign submission and all external activation require separate approval.
+
+## Approved development decision update
+
+| Item | Evidence | Submission status |
+| --- | --- | --- |
+| Test migration excluded without history repair | Exact-byte SQL fixture; read-only hosted history and no branches; offline tests | Complete for known CareText environment |
+| Production consent migration | Only pending canonical migration; catalog comparison matches | Blocked on actual backup/staging validation and separate application approval |
+| Autopilot age/preparation/consent/schedule/lifecycle | `src/autopilot-controls.mjs`, `tests/autopilot.test.mjs`; 90 days Auth creation + two completed human-approved batches; 08:00–21:00 local, no catch-up | Local contracts tested; production integrations and semantic safety evaluation incomplete |
+| Mode notice | Subscriber in-app/email pending confirmation records; v3 covers both models | Actual subscriber UI/outbox delivery pending; no extra recipient notification unless final review requires it |
+| Leaked-password protection | CareText App Free plan confirmed; Pro+ required, currently from $25/month | Paid upgrade needs owner approval; setting unchanged |
+| Backups/restoration | Dashboard: Free has no project backups; synthetic quarantine/deletion/suppression tests | Actual encrypted backup and isolated restore missing |
+| Seven-route review artifact | Exact legal URLs + four static assets; APIs denied; hard build blocker retained | Prepared locally; publication requires separate scope approval |
+| Campaign submission and launch | `AUTOPILOT_DEVELOPMENT_REPORT.md` lists all remaining gates | NOT READY; do not submit or activate |
