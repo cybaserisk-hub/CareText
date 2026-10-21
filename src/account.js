@@ -47,11 +47,11 @@ if (!config.url || !config.key) {
     $('#recovery').hidden = !user || !recovery;
     if (!user || recovery) return;
     $('#identity').textContent = user.email;
-    const rows = checked(await client.from('relationships').select('id,kind,recipients(display_name,phone)').order('created_at'));
+    const rows = checked(await client.from('relationships').select('id,kind,caretouch_active,recipients(display_name,phone)').order('created_at'));
     if (current !== revision) return;
     for (const row of rows) {
       const p = document.createElement('p');
-      p.textContent = `${row.recipients.display_name} · ${row.kind} · MyTouch (CareTouch inactive)`;
+      p.textContent = `${row.recipients.display_name} · ${row.kind} · ${row.caretouch_active ? 'CareTouch consent active (delivery disabled)' : 'MyTouch (CareTouch inactive)'}`;
       const link=document.createElement('a');link.href=`app.html?relationship=${encodeURIComponent(row.id)}`;link.textContent=' Edit setup';p.append(link);
       $('#recipients').append(p);
     }

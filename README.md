@@ -29,3 +29,7 @@ Legal draft pages are available at `/privacy`, `/terms`, and `/invite`. CareText
 3. Implement safe migrations and tests. Do not expose service-role keys in frontend.
 4. Do not activate Polar charges, Twilio sends, or autopilot without explicit owner approval and real provider credentials.
 5. Move any real backend functions into non-public directories and use verified webhooks and idempotency.
+
+## Production consent implementation
+
+Production invitation/Verify orchestration, immutable consent evidence, entitlement-checked activation, signed STOP/HELP persistence and safe reply routing are implemented and tested locally. The new migration and endpoints are not deployed; paid verification and delivery remain disabled. See [PRODUCTION_CONSENT_DEPLOYMENT.md](PRODUCTION_CONSENT_DEPLOYMENT.md) for the verification report, exact proposed public scope and remaining campaign/operational blockers. The controlled-test sending gate remains closed.

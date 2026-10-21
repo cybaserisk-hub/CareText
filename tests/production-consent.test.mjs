@@ -1,0 +1,94 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+import twilio from 'twilio';
+import {productionConsentService,CONSENT_POLICY,createProductionConsentEndpoints,requireDeliveryEligibility} from '../src/production-consent.mjs';
+import {digest} from '../src/invitation-service.mjs';
+import {createTwilioWebhookHandler} from '../src/twilio-webhooks.mjs';
+test('production consent: verified activation, rejection, withdrawal, STOP, signed routing and client isolation',async()=>{
+ const db=new PGlite();try{
+ await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create role supabase_auth_admin;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to anon,authenticated,service_role;`);
+ for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile('supabase/migrations/'+f,'utf8'));
+ const uuid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');const phone='+12025550123';
+ for(let n=1;n<=4;n++)await db.exec(`insert into auth.users values('${uuid(n)}');insert into public.profiles(id,display_name)values('${uuid(n)}','Subscriber ${n}');insert into public.subscriptions(sender_id,plan,status)values('${uuid(n)}','${n===3?'Free':n===4?'Essential':'Plus'}','active');insert into public.recipients(id,sender_id,display_name,phone)values('${uuid(n+10)}','${uuid(n)}','Synthetic recipient','${phone}');insert into public.relationships(id,sender_id,recipient_id,kind)values('${uuid(n+20)}','${uuid(n)}','${uuid(n+10)}','Friend');insert into public.onboarding_states(id,sender_id,relationship_id,state)values('${uuid(n+30)}','${uuid(n)}','${uuid(n+20)}','{"mode":"care","frequency":"Weekly","days":["Mon"]}');`);
+ const query=async(sql,args=[])=>{await db.exec('reset role');return db.query(sql,args);};
+ const rpc=async(action,data)=>{await db.exec('set role service_role');return (await db.query('select public.production_consent($1,$2::jsonb) result',[action,JSON.stringify(data)])).rows[0].result;};
+ const accountSid='AC'+'1'.repeat(32),serviceSid='VA'+'2'.repeat(32);let count=0;const records=new Map();let timeout=false,mismatch=false;
+ const provider={verifications:{async create({to}){count++;const sid='VE'+String(count).padStart(32,'0');records.set(sid,to);return {sid,to,accountSid,serviceSid,status:'pending'};}},verificationChecks:{async create({verificationSid,code}){if(timeout)throw new Error('provider expired');return {sid:verificationSid,to:mismatch?'+12025550999':records.get(verificationSid),accountSid,serviceSid,status:code==='123456'?'approved':'pending',valid:code==='123456'};}}};
+ const authenticate=async b=>b?{id:b,email_confirmed_at:'yes'}:null;
+ const options={rpc,authenticate,verifyService:provider,accountSid,serviceSid};
+ const service=productionConsentService({...options,verificationEnabled:true});
+ const create=async(n=1)=>new URL('http://local'+(await service({action:'create',relationship_id:uuid(n+20)},uuid(n))).path).hash.slice(7);
+ const call=(action,token,extra={})=>service({action,token,...extra});
+ const start=token=>call('challenge',token,{phone,verification_requested:true});
+ const verify=(token,extra={})=>call('verify',token,{code:'123456',affirmative:true,policy_version:CONSENT_POLICY,...extra});
+ const clearCooldown=()=>query("update private.consent_invitations set last_check_at=now()-interval '3 seconds',last_sent_at=now()-interval '61 seconds'");
+ await assert.rejects(query('update public.relationships set caretouch_active=true'),/Verified eligible consent/);
+ await assert.rejects(service({action:'create',relationship_id:uuid(21)}),/sign-in/);
+ await assert.rejects(service({action:'create',relationship_id:uuid(22)},uuid(1)),/Save subscriber/);
+ let token=await create();assert.equal((await call('view',token)).sender,'Subscriber 1');
+ await assert.rejects(productionConsentService(options)({action:'challenge',token,phone,verification_requested:true}),/disabled/);assert.equal(count,0);
+ await assert.rejects(call('challenge',token,{phone:'+12025550999',verification_requested:true}),/match/);assert.equal(count,0);
+ await start(token);await assert.rejects(start(token),/limit/);
+ await assert.rejects(verify(token,{affirmative:false}),/Affirmative/);await assert.rejects(verify(token,{policy_version:'old'}),/Affirmative/);
+ await assert.rejects(verify(token,{code:'000000'}),/Incorrect/);await clearCooldown();
+ assert.equal((await verify(token)).status,'accepted');await assert.rejects(verify(token),/completed/);
+ assert.equal((await query('select caretouch_active from public.relationships where id=$1',[uuid(21)])).rows[0].caretouch_active,true);
+ let e=(await query("select * from private.consent_evidence where event='granted'")).rows[0];assert.equal(e.sender_id,uuid(1));assert.equal(e.recipient_id,uuid(11));assert.equal(e.provider_status,'approved');assert.equal(e.policy_version,CONSENT_POLICY);assert.match(e.disclosure,/STOP/);assert.ok(e.occurred_at);assert.equal(e.frequency,'Weekly');
+ assert.equal((await rpc('eligibility',{relationship_id:uuid(21)})).consent_eligible,true);await assert.rejects(requireDeliveryEligibility(rpc,uuid(21)),/disabled/);
+ // Signed webhook handling: replies route only when exactly one granted sender matches.
+ const authToken='synthetic',mg='MG'+'3'.repeat(32),number='+12025550100',urls={inbound:'https://caretext.app/api/twilio/inbound',status:'https://caretext.app/api/twilio/status'};
+ const webhook=createTwilioWebhookHandler({enabled:true,authToken,accountSid,serviceSid:mg,number,urls,rpc});let messages=0;
+ const message=body=>({AccountSid:accountSid,MessagingServiceSid:mg,MessageSid:'SM'+String(++messages).padStart(32,'0'),From:phone,To:number,Body:body});
+ const request=p=>new Request(urls.inbound,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded','x-twilio-signature':twilio.getExpectedTwilioSignature(authToken,urls.inbound,p)},body:new URLSearchParams(p)});
+ let p=message('hello');assert.equal((await webhook(request(p))).status,200);assert.equal((await query('select count(*)::int n from public.recipient_replies')).rows[0].n,1);
+ const second=await create(2);await start(second);await verify(second);
+ p=message('private ambiguous reply');await webhook(request(p));await webhook(request(p));assert.equal((await query("select routing from private.consent_inbound where message_sid=$1",[p.MessageSid])).rows[0].routing,'ambiguous');assert.equal((await query('select count(*)::int n from public.recipient_replies')).rows[0].n,1);
+ p=message('HELP');const help=await webhook(request(p));assert.doesNotMatch(await help.text(),/<Message>/);assert.match((await query("select help_preview from private.consent_inbound where kind='HELP'")).rows[0].help_preview,/support@caretext.app/);
+ const bad=request(message('STOP'));bad.headers.set('x-twilio-signature','invalid');assert.equal((await webhook(bad)).status,403);assert.equal((await rpc('eligibility',{relationship_id:uuid(21)})).consent_eligible,true);
+ await query("insert into private.consent_outbound(message_sid,relationship_id,phone)values($1,$2,$3)",['SM'+'a'.repeat(32),uuid(21),phone]);
+ p=message('STOP');await webhook(request(p));await webhook(request(p));await webhook(request(message('START')));
+ assert.equal((await query('select count(*)::int n from public.relationships where caretouch_active')).rows[0].n,0);assert.equal((await query('select status from private.consent_outbound')).rows[0].status,'canceled');assert.equal((await rpc('eligibility',{relationship_id:uuid(21)})).consent_eligible,false);
+ token=await create();await assert.rejects(start(token),/suppressed/);
+ // Clear only synthetic fixture suppression to exercise other independent cases.
+ await query('update private.recipient_suppression set blocked=false');await query("update private.consent_invitations set last_sent_at=now()-interval '2 hours'");
+ token=await create(3);await assert.rejects(start(token),/paid plan/);
+ token=await create(4);await query("update public.onboarding_states set state=state||'{\"frequency\":\"Daily\"}'::jsonb where sender_id=$1",[uuid(4)]);await assert.rejects(start(token),/Setup changed/);
+ token=await create(4);await assert.rejects(start(token),/paid plan/);
+ token=await create();await call('decline',token);await assert.rejects(start(token),/completed/);
+ token=await create();await query("update private.consent_invitations set expires_at=now()-interval '1 second' where token_hash=$1",[digest(token)]);await assert.rejects(start(token),/expired/);
+ token=await create();await start(token);await query("update private.consent_invitations set challenge_expires_at=now()-interval '1 second' where token_hash=$1",[digest(token)]);await assert.rejects(verify(token),/expired/);
+ token=await create();await start(token);mismatch=true;await assert.rejects(verify(token),/unavailable/);mismatch=false;await clearCooldown();await verify(token);await call('withdraw',token);assert.equal((await rpc('eligibility',{relationship_id:uuid(21)})).consent_eligible,false);
+ await assert.rejects(service({action:'revoke',token},uuid(2)),/unavailable/);
+ // Voluntary replacement policy is account-wide, including Plus.
+ await query("update private.consent_invitations set created_at=now()-interval '2 hours',last_sent_at=now()-interval '2 hours'");
+ const fresh=async(n,owner=1)=>{
+  const newPhone='+1202555'+String(n).padStart(4,'0');
+  await query('insert into public.recipients(id,sender_id,display_name,phone)values($1,$2,$3,$4)',[uuid(n+100),uuid(owner),'Synthetic',newPhone]);
+  await query("insert into public.relationships(id,sender_id,recipient_id,kind)values($1,$2,$3,'Friend')",[uuid(n+200),uuid(owner),uuid(n+100)]);
+  await query("insert into public.onboarding_states(id,sender_id,relationship_id,state)values($1,$2,$3,'{\"mode\":\"care\",\"frequency\":\"Weekly\"}')",[uuid(n+300),uuid(owner),uuid(n+200)]);
+  const t=new URL('http://local'+(await service({action:'create',relationship_id:uuid(n+200)},uuid(owner))).path).hash.slice(7);
+  await call('challenge',t,{phone:newPhone,verification_requested:true});return t;
+ };
+ let replacement=await fresh(1);await verify(replacement);await service({action:'revoke',token:replacement},uuid(1));
+ replacement=await fresh(2);await verify(replacement);await service({action:'revoke',token:replacement},uuid(1));
+ replacement=await fresh(3);await assert.rejects(verify(replacement),/replacement limit/);
+ assert.equal((await query("select count(*)::int n from public.replacement_audit where sender_id=$1 and reason='voluntary'",[uuid(1)])).rows[0].n,1);
+ const essential=await fresh(4,4);await verify(essential);
+ await assert.rejects(fresh(5,4),/plan limit/);
+ for(const role of ['anon','authenticated']){await db.exec('set role '+role);await assert.rejects(db.query("select public.production_consent('view','{}')"),/permission denied/);await assert.rejects(db.query('select * from private.consent_evidence'),/permission denied/);await assert.rejects(db.query('update public.relationships set caretouch_active=true'),/permission denied/);}
+ await db.exec(`set role authenticated;set request.jwt.claim.sub='${uuid(2)}'`);assert.equal((await db.query('select count(*)::int n from public.recipient_replies')).rows[0].n,0);
+ assert.equal((await createProductionConsentEndpoints()(new Request('https://caretext.app/api/invitations'))).status,503);
+ const admin={rpc:async(name,{action,data})=>({data:await rpc(action,data)}),auth:{getUser:async()=>({error:'invalid'})}};
+ const endpoints=createProductionConsentEndpoints({admin,config:{origin:'https://caretext.app',rateSecret:'synthetic'},enabled:true});
+ const req=(origin,body)=>new Request('https://caretext.app/api/invitations',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await endpoints(req('https://attacker.invalid',{action:'create'}),{clientIp:'local-test'})).status,403);
+ assert.equal((await endpoints(req('https://caretext.app',{action:'create',relationship_id:uuid(21)}),{clientIp:'local-test'})).status,400);
+ assert.equal((await endpoints(req('https://caretext.app',{action:'view',token}))).status,400);
+ for(let n=0;n<30;n++)await rpc('rate',{key:'synthetic-rate-limit'});
+ assert.ok((await rpc('rate',{key:'synthetic-rate-limit'})).error);
+ assert.equal((await query("select count(*)::int n from pg_class c join pg_namespace ns on ns.oid=c.relnamespace where ns.nspname='private' and c.relname in ('consent_invitations','relationship_consent','consent_evidence','recipient_suppression','consent_inbound','consent_outbound','consent_rate_limits') and c.relrowsecurity")).rows[0].n,7);
+ assert.equal((await query("select prosecdef from pg_proc where proname='production_consent'")).rows[0].prosecdef,false);
+ }finally{await db.close();}
+});

@@ -11,7 +11,7 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Consistent brand and operator | All three pages, site footers | Content ready |
 | Privacy URL | `/privacy`, `site/privacy/index.html` | Local route verified; public HTTPS pending approval |
 | Terms URL | `/terms`, `site/terms/index.html` | Local route verified; public HTTPS pending approval |
-| Invitation URL | `/invite`, `site/invite/index.html` | Private test flow implemented; standalone real OTP test passed. Production invitation integration and public route pending |
+| Invitation URL | `/invite`, `site/invite/index.html` | Production integration tested locally with mocked provider; standalone real OTP test passed separately. Hosted integration and public route pending |
 | Collection, use, storage and deletion | Privacy: information, storage, LearnMe sections | Current behavior described; final retention policy unresolved |
 | No mobile/SMS consent marketing sharing | Privacy: Mobile information and service providers | Explicit no sale, rental, or sharing with third parties/affiliates for marketing/promotions |
 | Necessary provider processing | Privacy: providers and current/planned services | Disclosed; final provider contracts/settings need validation |
@@ -23,17 +23,17 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Free/Essential/Plus terms | Terms: Subscriptions | Content prepared; billing inactive. Confirm final annual checkout prices and SMS segment accounting before launch |
 | Recurring billing / cancellation | Terms: Renewals, cancellation and refunds | Described conditionally; portal and webhook behavior unimplemented |
 | Refund windows | Terms: 7 days initial monthly / 14 days initial annual purchase | Content ready; applicable law and service exceptions retained; processing workflow pending |
-| Recipient replacements | Terms: Recipient replacements | One completed voluntary replacement per account per rolling 30 days for both paid plans; documented declined/opt-out/incorrect-number exceptions; enforcement pending |
+| Recipient replacements | Terms; production consent migration | Rolling 30-day voluntary limit and recorded opt-out exception tested locally for paid plans; other documented exceptions require support handling; hosted enforcement pending |
 | SMS program / AI transparency | Terms and invitation | Content ready; human approval and future Autopilot distinguished; Autopilot disabled |
 | Frequency / rates / STOP / HELP | Terms and invitation | General disclosures present; actual per-invitation schedule and configured keyword behavior pending |
 | Carrier liability disclaimer | Terms: Delivery and privacy | Content ready |
-| Subscriber identity | Invitation: From | Private test: server identifies verified subscriber account email; production identity presentation still needs review |
-| Expected message frequency | Invitation: Frequency | Private test: saved server schedule snapshot displayed; changed setup invalidates invitation; production schedule/entitlement enforcement pending |
+| Subscriber identity | Invitation: From | Production server snapshots saved subscriber display name; local UI and ownership checks implemented; hosted acceptance pending |
+| Expected message frequency | Invitation: Frequency | Server schedule snapshot displayed; changed setup invalidates invitation; production entitlement checks tested locally; hosted acceptance pending |
 | Separate unchecked SMS checkbox | Invitation | Present, unchecked and separate; required for test acceptance; no live consent |
 | Accept / Decline | Invitation and flow.js | Test Accept requires challenge and affirmative action; Decline records decline without granting consent; no-token page fails closed |
-| Affirmative action + verification before recording consent | Private local API and service-role-only RPC | Expiring opaque tokens, bounded simulated challenges, replay protection and atomic TEST evidence implemented/tested. Offline Twilio SDK verification adapter also tested with persisted SID/reservation, attempt limits and provider context checks. Standalone real Verify OTP test passed; production invitation-to-consent integration remains BLOCKED |
-| Consent evidence | Supabase foundation | Private test evidence captures disclosure/version, subscriber/relationship/number, frequency, server timestamp and simulated method; live_consent=false enforced. Production provider-attested evidence still pending |
-| STOP / HELP / reply handling | Planned SMS disclosures | LOCAL TESTS PASS: SDK signatures, STOP suppression/queue cancellation, HELP preview, START non-reactivation and reply recording. BLOCKED: hosted integration, production suppression/dispatch, provider keywords, actual responses and subscriber reply routing |
+| Affirmative action + verification before recording consent | Production service and service-role-only RPC | LOCAL TESTS PASS: bound provider approval, affirmative/version checks, expiration, replay prevention and atomic activation. Hosted migration, endpoint mounting and approved real end-to-end acceptance remain pending |
+| Consent evidence | Production consent migration | Immutable production evidence includes recipient/sender/relationship IDs, disclosure/version, frequency, timestamp and provider context; tested locally with mocked provider. No live production consent granted |
+| STOP / HELP / reply handling | Production service and migration | LOCAL TESTS PASS: signed STOP suppression/queue cancellation, HELP preview, START non-reactivation, sender-isolated replies and multi-sender quarantine. BLOCKED: hosted integration, provider keywords, actual responses and future dispatch |
 | Reviewer-accessible proof | These pages / future evidence | BLOCKED: no public approved deployment or approved evidence URL; static preview must not be presented as functional consent |
 | Brand and campaign data | Twilio submission | Business identity/EIN/contact, registered brand match, campaign use case, message samples, number association and complete message-flow description not reviewed/submitted |
 | Safe public review scope | netlify.toml; deployment-disabled.mjs | Deployment block retained. Owner approval required for exact reviewed scope |
@@ -43,7 +43,7 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 1. Retention periods and privacy-request procedure have now been supplied. Validate each period against actual provider controls before promising it. Identify treatment of consent/suppression evidence, provider logs and backups.
 2. Inbound privacy and support delivery is verified. Finalize response coverage, request tracking, escalation and an approved reply identity; receipt testing alone does not validate these procedures.
 3. Approve final policy text and operational procedures after missing facts are resolved. No effective date has been invented.
-4. Consent verification and operational deletion require implementation and acceptance testing; writing policy text does not implement either.
+4. Production consent is implemented locally; hosted and separately approved real end-to-end acceptance remain pending. Operational deletion still requires implementation and validation.
 5. Proposed future deployment scope for approval: only `/privacy`, `/terms`, `/invite`, their necessary CSS/logo/preview assets, and reviewed legal footer links. No public account/onboarding routes, checkout, SMS endpoints or registration changes. Hosting must enforce that restricted scope; copying the entire current dist directory would exceed it. Domain routing/TLS and any replacement of existing hosted content must be reviewed explicitly before deployment.
 
 ## Authoritative review references
@@ -69,3 +69,7 @@ See [RECIPIENT_INVITATION_TESTING.md](RECIPIENT_INVITATION_TESTING.md) for imple
 ## Controlled Verify test follow-up
 
 A dedicated CareText Verify service now exists. The approved local-only test passed with two OTP sends, including actual code approval and provider expiration; the sending gate is now closed. See `TWILIO_VERIFY_TEST_REPORT.md`. This validates the restricted OTP test adapter, not the production invitation-to-consent-to-delivery workflow. Public webhooks, production consent/suppression integration, campaign approval and reviewer-accessible deployment remain blockers. Submission readiness remains NOT READY.
+
+## Production consent implementation
+
+Production invitation/Verify orchestration, immutable consent evidence, entitlement-checked activation, signed STOP/HELP persistence and safe reply routing are implemented and tested locally. The new migration and endpoints are not deployed; paid verification and delivery remain disabled. See [PRODUCTION_CONSENT_DEPLOYMENT.md](PRODUCTION_CONSENT_DEPLOYMENT.md) for the verification report, exact proposed public scope and remaining campaign/operational blockers. The controlled-test sending gate remains closed.
