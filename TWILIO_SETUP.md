@@ -103,3 +103,7 @@ Before the first real Verify SMS:
 6. After the bounded test, disable its sending gate and report number of attempts, outcome and actual provider charges when available. Never log or commit OTPs, credentials or full recipient details.
 
 No Twilio Console settings, hosted database migration, public deployment, SMS send or charge was performed as part of the commit/push request.
+
+## Completed controlled real Verify test
+
+The later owner-authorized local-only test passed arrival, incorrect-code rejection, correct-code approval, local replay prevention, send/check cooldowns, and provider expiration. Two OTP sends were used; the persistent test gate is now closed. Final provider charges remain pending. See `TWILIO_VERIFY_TEST_REPORT.md` for evidence, credential handling, budget-reservation limitations and production blockers. This supersedes earlier statements that no Verify service exists or that no real test has been authorized. No public deployment, hosted migration, recurring delivery, payments, Autopilot or public registration was activated.

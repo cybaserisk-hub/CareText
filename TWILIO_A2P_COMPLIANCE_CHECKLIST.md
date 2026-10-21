@@ -7,11 +7,11 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Requirement | Location / evidence | Submission status |
 | --- | --- | --- |
 | Twilio sender association | Console sender pool; TWILIO_SETUP.md | VERIFIED: +14246672273 belongs to MG444fa12ec1f01b8d68a82f0432dcf62e; number messaging disabled pending A2P registration |
-| Verify service / webhooks | TWILIO_SETUP.md | BLOCKED: no Verify service exists; number webhooks and service status callback blank; Advanced Opt-Out not enabled. Configuration prepared, not installed |
+| Verify service / webhooks | TWILIO_SETUP.md | CareText Verify service created and controlled real OTP test passed; test sending gate closed. BLOCKED: number webhooks and service status callback blank; Advanced Opt-Out not enabled |
 | Consistent brand and operator | All three pages, site footers | Content ready |
 | Privacy URL | `/privacy`, `site/privacy/index.html` | Local route verified; public HTTPS pending approval |
 | Terms URL | `/terms`, `site/terms/index.html` | Local route verified; public HTTPS pending approval |
-| Invitation URL | `/invite`, `site/invite/index.html` | Private test flow implemented; real phone verification and public route pending |
+| Invitation URL | `/invite`, `site/invite/index.html` | Private test flow implemented; standalone real OTP test passed. Production invitation integration and public route pending |
 | Collection, use, storage and deletion | Privacy: information, storage, LearnMe sections | Current behavior described; final retention policy unresolved |
 | No mobile/SMS consent marketing sharing | Privacy: Mobile information and service providers | Explicit no sale, rental, or sharing with third parties/affiliates for marketing/promotions |
 | Necessary provider processing | Privacy: providers and current/planned services | Disclosed; final provider contracts/settings need validation |
@@ -31,7 +31,7 @@ Brand/SMS program: CareText. Legal operator/business name: CyBase Risk Managemen
 | Expected message frequency | Invitation: Frequency | Private test: saved server schedule snapshot displayed; changed setup invalidates invitation; production schedule/entitlement enforcement pending |
 | Separate unchecked SMS checkbox | Invitation | Present, unchecked and separate; required for test acceptance; no live consent |
 | Accept / Decline | Invitation and flow.js | Test Accept requires challenge and affirmative action; Decline records decline without granting consent; no-token page fails closed |
-| Affirmative action + verification before recording consent | Private local API and service-role-only RPC | Expiring opaque tokens, bounded simulated challenges, replay protection and atomic TEST evidence implemented/tested. Offline Twilio SDK verification adapter also tested with persisted SID/reservation, attempt limits and provider context checks. Real provider phone-control verification remains BLOCKED |
+| Affirmative action + verification before recording consent | Private local API and service-role-only RPC | Expiring opaque tokens, bounded simulated challenges, replay protection and atomic TEST evidence implemented/tested. Offline Twilio SDK verification adapter also tested with persisted SID/reservation, attempt limits and provider context checks. Standalone real Verify OTP test passed; production invitation-to-consent integration remains BLOCKED |
 | Consent evidence | Supabase foundation | Private test evidence captures disclosure/version, subscriber/relationship/number, frequency, server timestamp and simulated method; live_consent=false enforced. Production provider-attested evidence still pending |
 | STOP / HELP / reply handling | Planned SMS disclosures | LOCAL TESTS PASS: SDK signatures, STOP suppression/queue cancellation, HELP preview, START non-reactivation and reply recording. BLOCKED: hosted integration, production suppression/dispatch, provider keywords, actual responses and subscriber reply routing |
 | Reviewer-accessible proof | These pages / future evidence | BLOCKED: no public approved deployment or approved evidence URL; static preview must not be presented as functional consent |
@@ -64,4 +64,8 @@ See [PROVIDER_RETENTION_REVIEW.md](PROVIDER_RETENTION_REVIEW.md) and [CARETEXT_I
 
 Gmail filters: `to:(privacy@caretext.app)` applies `CareText / Privacy`; `to:(support@caretext.app)` applies `CareText / Support`. Both also applied to the existing matching test conversation. No archive, delete, mark-read, forwarding or spam-bypass actions were selected.
 
-See [RECIPIENT_INVITATION_TESTING.md](RECIPIENT_INVITATION_TESTING.md) for implementation, test evidence, safe local operation and remaining approvals. No live phone ownership or production SMS consent has been verified.
+See [RECIPIENT_INVITATION_TESTING.md](RECIPIENT_INVITATION_TESTING.md) for implementation, test evidence, safe local operation and remaining approvals. The invitation simulator does not prove phone ownership or grant production SMS consent; the separate controlled real Verify test is documented below.
+
+## Controlled Verify test follow-up
+
+A dedicated CareText Verify service now exists. The approved local-only test passed with two OTP sends, including actual code approval and provider expiration; the sending gate is now closed. See `TWILIO_VERIFY_TEST_REPORT.md`. This validates the restricted OTP test adapter, not the production invitation-to-consent-to-delivery workflow. Public webhooks, production consent/suppression integration, campaign approval and reviewer-accessible deployment remain blockers. Submission readiness remains NOT READY.
