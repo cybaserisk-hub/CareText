@@ -1,0 +1,3 @@
+# Paste into Codex
+
+Continue the CareText PWA from this repository. Do not redesign the homepage or onboarding. First, audit the current static prototype and create a Supabase-backed authentication and data foundation. Preserve the approved pricing, plan limits, recipient consent, LearnMe™ privacy, MyTouch/CareTouch workflows, and Trusted Autopilot eligibility. Use `README.md` as the source of truth. Implement server-side authorization, row-level security, migrations, and tests before wiring Polar/Twilio/OpenAI. Keep credentials server-side. Do not deploy publicly or send live SMS or charge customers without approval.

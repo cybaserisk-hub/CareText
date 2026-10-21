@@ -1,0 +1,12 @@
+import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { build } from 'esbuild';
+const url = process.env.SUPABASE_URL || '';
+const key = process.env.SUPABASE_PUBLISHABLE_KEY || '';
+if (Boolean(url) !== Boolean(key)) throw new Error('Set both Supabase public configuration values.');
+if (key && !key.startsWith('sb_publishable_')) throw new Error('Only a Supabase publishable key is accepted. Never use a secret/service-role key.');
+if (url && new URL(url).protocol !== 'https:') throw new Error('Supabase URL must use HTTPS.');
+await rm('dist', { recursive: true, force: true });
+await mkdir('dist', { recursive: true });
+await cp('site', 'dist', { recursive: true });
+await writeFile('dist/config.js', `window.CARETEXT_CONFIG=${JSON.stringify({url,key})};\n`);
+await build({entryPoints:['src/account.js'],bundle:true,format:'esm',outfile:'dist/account.js',minify:true});

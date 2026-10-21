@@ -1,0 +1,57 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+
+test('migration and authorization boundaries against PostgreSQL', async () => {
+  const db = new PGlite();
+  try {
+    await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+      create schema auth; create table auth.users(id uuid primary key);
+      create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+      grant usage on schema auth, public to authenticated,anon,service_role;
+      grant execute on function auth.uid() to authenticated,anon,service_role;`);
+    const migrations = (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort();
+    for (const file of migrations) await db.exec(await readFile(`supabase/migrations/${file}`,'utf8'));
+    const a = '00000000-0000-4000-8000-000000000001';
+    const b = '00000000-0000-4000-8000-000000000002';
+    await db.exec(`insert into auth.users values('${a}'),('${b}'); set role authenticated; set request.jwt.claim.sub='${a}';`);
+    const scalar = async sql => Object.values((await db.query(sql)).rows[0])[0];
+    const relationship = await scalar(`select public.create_relationship('Alice','Parent','+13125551234')`);
+    assert.equal(await scalar('select count(*)::int from public.profiles'),1);
+    await assert.rejects(db.exec(`insert into public.profiles(id) values('${b}')`),/row-level security/);
+    await assert.rejects(db.exec(`update public.relationships set caretouch_active=true`),/permission denied/);
+    await assert.rejects(db.exec(`insert into public.subscriptions(sender_id,plan,status) values('${a}','Plus','active')`),/permission denied/);
+    await assert.rejects(db.exec(`insert into public.consent_events(sender_id) values('${a}')`),/permission denied/);
+    await assert.rejects(db.exec(`insert into public.autopilot_settings(sender_id) values('${a}')`),/permission denied/);
+    await db.exec(`insert into public.learnme_preferences(sender_id) values('${a}')`);
+    await assert.rejects(db.exec(`insert into public.learnme_history(sender_id,content) values('${a}','style')`),/row-level security/);
+    await db.exec(`update public.learnme_preferences set enabled=true,policy_version='v1',opted_in_at=now(); insert into public.learnme_history(sender_id,content) values('${a}','style'); update public.learnme_preferences set enabled=false;`);
+    assert.equal(await scalar('select count(*)::int from public.learnme_history'),0);
+    await db.exec(`insert into public.message_drafts(sender_id,relationship_id,content) values('${a}','${relationship}','Hello')`);
+    const draft = await scalar('select id from public.message_drafts');
+    await assert.rejects(db.exec(`insert into public.message_approvals(sender_id,draft_id,approved_content) values('${a}','${draft}','Altered')`),/row-level security/);
+    await db.exec(`insert into public.message_approvals(sender_id,draft_id,approved_content) values('${a}','${draft}','Hello'); update public.message_drafts set content='Edited';`);
+    assert.equal(await scalar('select approved_content from public.message_approvals'),'Hello');
+    const recipient = await scalar('select id from public.recipients');
+    await db.exec(`set request.jwt.claim.sub='${b}'; select public.create_relationship('Bob','Friend',null);`);
+    assert.equal(await scalar('select count(*)::int from public.recipients'),1);
+    assert.equal(await scalar('select display_name from public.recipients'),'Bob');
+    assert.equal(await scalar('select count(*)::int from public.message_drafts'),0);
+    await assert.rejects(db.exec(`insert into public.relationships(sender_id,recipient_id,kind) values('${b}','${recipient}','Friend')`),/foreign key/);
+    await assert.rejects(db.exec(`insert into public.message_drafts(sender_id,relationship_id,content) values('${b}','${relationship}','Attack')`),/foreign key/);
+    await db.exec(`update public.message_drafts set content='Attack' where id='${draft}';`);
+    await assert.rejects(db.exec(`delete from public.recipients where id='${recipient}'`),/permission denied/);
+    await db.exec(`set role anon; set request.jwt.claim.sub='';`);
+    await assert.rejects(db.exec('select * from public.recipients'),/permission denied/);
+    await assert.rejects(db.exec(`select public.create_relationship('Anon','Friend',null)`),/permission denied/);
+    await db.exec('reset role');
+    assert.equal(await scalar(`select content from public.message_drafts where id='${draft}'`),'Edited');
+    assert.equal(await scalar("select count(*)::int from pg_tables where schemaname='public' and not rowsecurity"),0);
+    assert.equal(await scalar('select count(*)::int from public.plan_allowances where (plan=\'Essential\' and monthly_sms=15 and active_recipient_limit=1) or (plan=\'Plus\' and monthly_sms=100 and active_recipient_limit=5)'),2);
+    await db.exec(`set role authenticated; set request.jwt.claim.sub='${a}'`);
+    const countBefore = await scalar('select count(*)::int from public.recipients');
+    await assert.rejects(db.exec(`select public.create_relationship('Invalid','invalid',null)`),/check constraint/);
+    assert.equal(await scalar('select count(*)::int from public.recipients'),countBefore);
+  } finally { await db.close(); }
+});
