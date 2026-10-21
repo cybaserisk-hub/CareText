@@ -3,6 +3,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
+import {testAllowlist} from './test-allowlist.mjs';
 const url = process.env.SUPABASE_URL;
 assert.equal(url,'https://ixpniaronwgjimqyeowq.supabase.co','Only the approved CareText project is allowed');
 const publicKey = process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -13,6 +14,7 @@ const admin=createClient(url,adminKey,options);
 const client=()=>createClient(url,publicKey,options);
 const users=[];
 const clients=[];
+const allowed=[];
 const ok=result=>{if(result.error)throw new Error(result.error.message);return result.data;};
 const denied=result=>assert.ok(result.error,'Expected permission denial');
 const pass=message=>console.log(`PASS: ${message}`);
@@ -29,6 +31,7 @@ try {
   for(let i=0;i<2;i++) {
     const email=`caretext-verification-${randomUUID()}@example.invalid`;
     const password=`Ct!${randomUUID()}aA9`;
+    testAllowlist(email,true);allowed.push(email);
     // generateLink creates an unconfirmed signup without delivering email.
     const signup=ok(await admin.auth.admin.generateLink({type:'signup',email,password,options:{redirectTo:'http://localhost:4173/account.html'}}));
     users.push(signup.user.id);
@@ -92,7 +95,7 @@ try {
   for(const c of clients) { const response=await c.auth.signOut(); if(response.error) failures.push('session sign-out'); }
   for(const user of users) {
     const id=typeof user==='string'?user:user.id;
-    for(const table of ['message_approvals','message_drafts','learnme_history','learnme_preferences','relationships','recipients']) {
+    for(const table of ['onboarding_states','message_approvals','message_drafts','learnme_examples','learnme_history','learnme_preferences','relationships','recipients']) {
       const result=await admin.from(table).delete().eq('sender_id',id);
       if(result.error)failures.push(`${table} cleanup`);
     }
@@ -100,5 +103,6 @@ try {
     if(result.error)failures.push('temporary auth user cleanup');
   }
   assert.deepEqual(failures,[],'Temporary data cleanup must succeed');
+  for(const email of allowed)testAllowlist(email,false);
   console.log(`CLEANUP: removed ${users.length} temporary accounts and their test records`);
 }

@@ -8,7 +8,9 @@
 - Keep `architecture/`, `supabase/`, tests, and credentials OUTSIDE the public output.
 
 ## Status
-The original homepage/onboarding remain a browser-only prototype. A separate `account.html` implements Supabase email authentication and persistent recipient relationships. The schema is applied to the CareText project; hosted authentication and Data API authorization tests passed using temporary accounts, which were removed. Actual email delivery and real-browser acceptance remain unverified. No billing, AI generation, consent collection, SMS, notifications, or actual autopilot is active. Demo localStorage is never imported into account data and is not authoritative.
+The existing onboarding screens now persist recipient profiles, MyTouch/CareTouch preferences, schedules, and optional LearnMe examples in Supabase. Authentication uses a private tester allowlist and CareText-only Resend SMTP. The owner verified signup confirmation, password recovery, new-password login, and rejection of the old password. Hosted authorization tests and in-app browser save/reload, stale-tab, and responsive viewport checks passed. LearnMe opt-out deletes saved examples; its regression test checks stored rows independently of RLS visibility. See [AUTH_ACCEPTANCE.md](AUTH_ACCEPTANCE.md) for remaining device coverage and [CARETEXT_EMAIL_SETUP.md](CARETEXT_EMAIL_SETUP.md) for email configuration. No billing, AI generation, consent collection, SMS, notification workers, or actual autopilot is active. Demo localStorage is never imported into account data and is not authoritative.
+
+Legal draft pages are available at `/privacy`, `/terms`, and `/invite`. CareText remains the product/SMS brand; CyBase Risk Management, LLC is the legal operator. The invitation controls remain disabled. Effective dates, retention/backup deletion rules, privacy-rights details, and support/privacy inbox setup still need confirmation before publication.
 
 ## Confirmed product rules
 - Free: MyTouch, reminders, 5 AI-generated texts/month, copy to personal messaging app, no CareText SMS.

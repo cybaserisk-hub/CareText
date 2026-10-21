@@ -6,7 +6,7 @@ import {PGlite} from '@electric-sql/pglite';
 test('migration and authorization boundaries against PostgreSQL', async () => {
   const db = new PGlite();
   try {
-    await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+    await db.exec(`create role anon; create role authenticated; create role service_role bypassrls; create role supabase_auth_admin;
       create schema auth; create table auth.users(id uuid primary key);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       grant usage on schema auth, public to authenticated,anon,service_role;
@@ -25,7 +25,7 @@ test('migration and authorization boundaries against PostgreSQL', async () => {
     await assert.rejects(db.exec(`insert into public.consent_events(sender_id) values('${a}')`),/permission denied/);
     await assert.rejects(db.exec(`insert into public.autopilot_settings(sender_id) values('${a}')`),/permission denied/);
     await db.exec(`insert into public.learnme_preferences(sender_id) values('${a}')`);
-    await assert.rejects(db.exec(`insert into public.learnme_history(sender_id,content) values('${a}','style')`),/row-level security/);
+    await assert.rejects(db.exec(`insert into public.learnme_history(sender_id,content) values('${a}','style')`),/LearnMe opt-in required/);
     await db.exec(`update public.learnme_preferences set enabled=true,policy_version='v1',opted_in_at=now(); insert into public.learnme_history(sender_id,content) values('${a}','style'); update public.learnme_preferences set enabled=false;`);
     assert.equal(await scalar('select count(*)::int from public.learnme_history'),0);
     await db.exec(`insert into public.message_drafts(sender_id,relationship_id,content) values('${a}','${relationship}','Hello')`);
@@ -53,5 +53,34 @@ test('migration and authorization boundaries against PostgreSQL', async () => {
     const countBefore = await scalar('select count(*)::int from public.recipients');
     await assert.rejects(db.exec(`select public.create_relationship('Invalid','invalid',null)`),/check constraint/);
     assert.equal(await scalar('select count(*)::int from public.recipients'),countBefore);
+    const record='00000000-0000-4000-8000-000000000010';
+    const payload={plan:'Plus',mode:'care',step:3,name:'Parent',relationship:'Parent',phone:'',feel:[],tone:[],traits:[],topics:[],days:[],frequency:'Daily'};
+    const saveSetup=async(id,version,state,learn,styleVersion,examples=[])=> (await db.query('select public.save_onboarding($1,$2,$3::jsonb,$4,$5::jsonb,$6) as result',[id,version,JSON.stringify(state),learn,JSON.stringify(examples),styleVersion])).rows[0].result;
+    let styleVersion=await scalar('select revision from public.learnme_preferences');
+    const saved=await saveSetup(record,0,payload,true,styleVersion,['My writing example']);
+    assert.equal(saved.state.mode,'care');
+    assert.equal(await scalar('select count(*)::int from public.learnme_examples'),1);
+    assert.equal(await scalar(`select caretouch_active from public.relationships where id='${saved.relationship_id}'`),false);
+    assert.equal(await scalar('select count(*)::int from public.subscriptions'),0);
+    await assert.rejects(saveSetup(record,0,payload,true,saved.learnme_revision),/another tab/);
+    await assert.rejects(saveSetup(record,1,payload,true,styleVersion),/LearnMe changed/);
+    await assert.rejects(saveSetup(record,1,{...payload,example1:'leak'},true,saved.learnme_revision),/Unsupported/);
+    await assert.rejects(saveSetup(record,1,{...payload,plan:'Free'},true,saved.learnme_revision),/CareTouch requires/);
+    await assert.rejects(saveSetup(record,1,{...payload,plan:'Essential'},true,saved.learnme_revision),/Daily CareTouch/);
+    const updated=await saveSetup(record,1,{...payload,name:'Changed'},false,saved.learnme_revision,['Must not persist']);
+    assert.equal(updated.revision,2);
+    assert.equal(await scalar('select count(*)::int from public.learnme_examples'),0);
+    await db.exec('reset role');
+    assert.equal(await scalar(`select count(*)::int from public.learnme_examples where sender_id='${a}'`),0,'Opt-out deletes stored examples, not merely hides them through RLS');
+    await db.exec('set role authenticated');
+    assert.equal(await scalar(`select display_name from public.recipients where id=(select recipient_id from public.relationships where id='${saved.relationship_id}')`),'Changed');
+    await db.exec(`set request.jwt.claim.sub='${b}'`);
+    assert.equal(await scalar('select count(*)::int from public.onboarding_states'),0);
+    await assert.rejects(saveSetup(record,0,payload,false,0),/row-level security/);
+    assert.equal(await scalar('select count(*)::int from public.recipients'),1,'Failed foreign save rolls back recipient creation');
+    await assert.rejects(db.exec("select private.before_user_created('{}'::jsonb)"),/permission denied/);
+    await db.exec("reset role; insert into private.signup_allowlist values('allowed@example.invalid'); set role supabase_auth_admin;");
+    assert.equal((await scalar(`select private.before_user_created('{"user":{"email":"blocked@example.invalid"}}')`)).error.http_code,403);
+    assert.deepEqual(await scalar(`select private.before_user_created('{"user":{"email":"allowed@example.invalid"}}')`),{});
   } finally { await db.close(); }
 });
